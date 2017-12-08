@@ -44,7 +44,7 @@ RESTART_DELAY=0
 
 NOT_RECOMMEND_FORCE_RUN=false
 
-ENABLE_USERDEFINED_STOP=true
+ENABLE_USERDEFINED_STOP=false
 function userdefined_stop() { # Params: SCREEN_NAME/SCREEN_NAME_FULL
 	# For commands to send or so...
 	
@@ -198,12 +198,14 @@ function executed_bySSHD() {
 }
 
 : '
+	@Developer Notes
+	
 	Function: ......... screen_list
 	Explaination ...... Returns all the screens back, which run on the current user.
 	Parameters:
 		RETURN ........ Return-Value (List of all Screens)
 	
-	Optional usage:
+	Additional Notes:
 		$(RETURN) | sed -n ${LINE}p		........................................	Get 3rd line of ${RETURN} (In Example: ${LINE} = 3; Rule: ${LINE} > 0)
 		$(RETURN) | grep -F ".${SCREEN_NAME}	"	............................	Get only screens with ${SCREEN_NAME}
 		grep -c . <<<"$(RETURN)"	............................................	Get lines count of ${RETURN}
