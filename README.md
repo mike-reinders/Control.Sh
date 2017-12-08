@@ -9,6 +9,8 @@ Control.sh provides to start, stop and restart your application whith only one s
 
 ## Installation
 
+Download: [control.sh](control.sh)
+
 1. Copy control.sh into your folder, where your managed application executable is stored in.  
 2. Execute `apt-get update; apt-get install screen` in your putty/console.  
 3. Configure your control.sh
