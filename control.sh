@@ -1,17 +1,21 @@
 #!/bin/bash
 
-BINDIR=$(dirname "$(readlink -fn "$0")")
-cd "$BINDIR"
-
 : '
 	**************************************
 	***  Copyright (C) © 2016 Mike R.  ***
+	***                & 2017          ***
+	***                & 2018          ***
 	***      All rights reserved.      ***
-	***     Selling is prohibited!     ***
 	***  GitHub.com/MikesCodeProjects  ***
 	**************************************
+	***      !! Usage allowed !!       ***
+	***   ~ private && commercial ~    ***
+	***    !! Selling forbidden !!     ***
+	***      ~ for all purposes ~      ***
+	**************************************
 	
-	This Script was tested on Debian 8 (Jessie) and Ubuntu 16.10 (Yakkety Yak)
+	Script tested on Debian 8 (Jessie) and Ubuntu 16.10 (Yakkety Yak)
+	Also tested usage in Docker Container with Ubuntu 17.10 (Artful Aardvark) installed.
 	
 	Example-Filename:	control.sh
 	Example-Execution:	./control.sh
@@ -48,13 +52,7 @@ ENABLE_USERDEFINED_STOP=false
 function userdefined_stop() { # Params: SCREEN_NAME/SCREEN_NAME_FULL
 	# For commands to send or so...
 	
-	screen_send_cmd "${1}" "save-all"
-	echo -en "."
-	sleep 1
-	
-	screen_send_cmd "${1}" "stop"
-	echo -en "."
-	sleep 1
+	# Do something here, that leads to application exit
 	
 	return 0
 }
@@ -66,28 +64,57 @@ REGEX_SCREEN_NAME="^([^[:space:]\.]+)$"						# ScreenName
 REGEX_SCREEN_NAME_KEEPER="^K_([^[:space:]\.]+)$"				# ScreenName-Keeper
 REGEX_SCREEN_NAME_FULL="^([0-9]{1,5})\.([^[:space:]\.]+)$"	# ScreenName-Full
 
-
 # tput-COLORS
-COLOR_WHITE="$(tput setaf 7)"
-COLOR_RED="$(tput setaf 1)"
-COLOR_GREEN="$(tput setaf 2)"
-COLOR_YELLOW="$(tput setaf 3)"
-COLOR_CYAN="$(tput setaf 6)"
+COLOR_WHITE="$(tput setaf 7 2>/dev/null)"
+COLOR_RED="$(tput setaf 1 2>/dev/null)"
+COLOR_GREEN="$(tput setaf 2 2>/dev/null)"
+COLOR_YELLOW="$(tput setaf 3 2>/dev/null)"
+COLOR_CYAN="$(tput setaf 6 2>/dev/null)"
 
-COLOR_BOLD="$(tput bold)"
-#COLOR_UNDERLINE="$(tput smul)"
-#COLOR_UNDERLINE_END="$(tput rmul)"
-#COLOR_ITALIC="$(tput sitm)"
-#COLOR_ITALIC_END="$(tput ritm)"
-#COLOR_BLINK="$(tput blink)"
-#COLOR_REVERSE="$(tput rev)"
-#COLOR_INVISIBLE="$(tput invis)"
+COLOR_BOLD="$(tput bold 2>/dev/null)"
+#COLOR_UNDERLINE="$(tput smul 2>/dev/null)"
+#COLOR_UNDERLINE_END="$(tput rmul 2>/dev/null)"
+#COLOR_ITALIC="$(tput sitm 2>/dev/null)"
+#COLOR_ITALIC_END="$(tput ritm 2>/dev/null)"
+#COLOR_BLINK="$(tput blink 2>/dev/null)"
+#COLOR_REVERSE="$(tput rev 2>/dev/null)"
+#COLOR_INVISIBLE="$(tput invis 2>/dev/null)"
 
-COLOR_RESET="$(tput sgr0)"
+COLOR_RESET="$(tput sgr0 2>/dev/null)"
 
 # Preparation
 
 FULL_COMMAND_LINE="${0} ${@}"
+
+: ' >>> INITIAL CODE / DEBUG OPTION <<< '
+
+#if [ ! executed_byKeeperScreen ]; then
+	: ' >>> SET DEBUG OPTION HERE <<< '
+	DEBUG=false
+	CLEAR_DEBUG=true
+#fi;
+
+if [ "${DEBUG}" == true ]; then
+	echo -e "${COLOR_YELLOW}${COLOR_BOLD}[DEBUG]${COLOR_WHITE} Debugging enabled!${COLOR_RESET}"
+	
+	# noglob
+	#set -f
+	# verbose
+	#set -v
+	# xtrace
+	set -x
+fi;
+
+if [ "${1}" == "syntax" ]; then
+	if [ "${2}" == "quiet" ]; then
+		exit $(bash -n &>/dev/null)
+	else
+		exit $(bash -n)
+	fi;
+fi;
+
+BINDIR=$(dirname "$(readlink -fn "$0")")
+cd "$BINDIR"
 
 : ' >>> METHODS <<< '
 
@@ -148,24 +175,29 @@ function redirect_user() { # Params: USER
 }
 
 function redirect_processed() {
+	PARENT_PID=$(ps -o ppid= ${PPID} | sed -e 's/^[ ]//' )
+	if [ "${PARENT_PID}" -eq "0" ]; then return 1; fi;
+	
 	CMDLINE=$(ps -p ${PPID} -o args --no-headers)
-	P_CMDLINE=$(ps -p $(ps -o ppid= ${PPID} | sed -e 's/^[ ]//' ) -o args --no-headers)
+	PARENT_CMDLINE=$(ps -p ${PARENT_PID} -o args --no-headers)
 	
 	COMP_CMDLINE="sudo -u ${EXECUTING_USER} ${FULL_COMMAND_LINE}"
-	COMP_P_CMDLINE="/bin/bash ${FULL_COMMAND_LINE}"
+	COMP_PARENT_CMDLINE="/bin/bash ${FULL_COMMAND_LINE}"
 	
-	if [ "${CMDLINE}" == "${COMP_CMDLINE}" ] && [ "${P_CMDLINE}" == "${COMP_P_CMDLINE}" ]; then
+	if [ "${CMDLINE}" == "${COMP_CMDLINE}" ] && [ "${PARENT_CMDLINE}" == "${COMP_PARENT_CMDLINE}" ]; then
 		return 0
 	fi;
 	
-	unset -v CMDLINE P_CMDLINE COMP_CMDLINE COMP_P_CMDLINE
+	unset -v CMDLINE PARENT_PID PARENT_CMDLINE COMP_CMDLINE COMP_PARENT_CMDLINE
 	
 	return 1
 }
 
 function executed_byBash() {
-	#CMDLINE=$(ps -p ${PPID} -o args --no-headers)
-	CMDLINE=$(ps -p $(ps -o ppid= ${PPID} | sed -e 's/^[ ]//' ) -o args --no-headers)
+	PARENT_PID=$(ps -o ppid= ${PPID} | sed -e 's/^[ ]//' )
+	if [ "${PARENT_PID}" -eq "0" ]; then return 1; fi;
+	
+	CMDLINE=$(ps -p ${PARENT_PID} -o args --no-headers)
 	
 	COMP_CMDLINE="/bin/bash ./control.sh"
 	
@@ -181,8 +213,10 @@ function executed_byBash() {
 }
 
 function executed_bySSHD() {
-	#CMDLINE=$(ps -p ${PPID} -o args --no-headers)
-	CMDLINE=$(ps -p $(ps -o ppid= ${PPID} | sed -e 's/^[ ]//' ) -o args --no-headers)
+	PARENT_PID=$(ps -o ppid= ${PPID} | sed -e 's/^[ ]//' )
+	if [ "${PARENT_PID}" -eq "0" ]; then return 1; fi;
+	
+	CMDLINE=$(ps -p ${PARENT_PID} -o args --no-headers)
 	
 	COMP_CMDLINE="sshd: "
 	
@@ -195,6 +229,22 @@ function executed_bySSHD() {
 	unset -v CMDLINE COMP_CMDLINE
 	
 	return 1
+}
+
+function executed_byKeeperScreen() {
+	CMDLINE=$(ps -p ${PPID} -o args --no-headers)
+	
+	if [ -z "${1}" ] \
+			&& ( ( [ "$(echo -e "${CMDLINE}" | awk '{print $1}')" == "SCREEN" ] \
+			&& [ "$(echo -e "${CMDLINE}" | awk '{print $2}')" == "-admS" ] \
+			&& [ "$(echo -e "${CMDLINE}" | awk '{print $3}')" == "K_${SCREEN_NAME}" ] \
+			&& [ "$(basename $(echo -e "${CMDLINE}" | awk '{print substr($0, index($0,$4))}') 2> /dev/null)" == "$(basename ${0} 2> /dev/null)" ] ) \
+			|| ( [ -e "$(basename $(echo -e "${CMDLINE}" | awk '{print substr($0, index($0,$2))}') 2> /dev/null)" ] \
+				&& [ "$(basename $(echo -e "${CMDLINE}" | awk '{print substr($0, index($0,$2))}') 2> /dev/null)" == "$(basename ${0} 2> /dev/null)" ] ) ); then
+		return 0;
+	fi;
+	
+	return 1;
 }
 
 : '
@@ -466,6 +516,32 @@ function get_distrib_version_name() { # Params: RETURN
 	return 0
 }
 
+function require_package() { # Params: PACKAGE_NAME
+	if ! command -v ${1} &> /dev/null && [ "${NOT_RECOMMEND_FORCE_RUN}" == false ]; then
+		echo -e "${COLOR_RED}${COLOR_BOLD}The required Package '${1}' isn't installed on your System!${COLOR_RESET}"
+		script_end 1
+	fi;
+}
+
+function script_end() { # Params: Optional:EXIT_CODE
+	unset -v APPLICATION_NAME SCREEN_NAME EXECUTION_FILE EXECUTING_USER SCREEN_KEEPER MIN_ELAPSED_TIME RESTART_DELAY
+
+	if [ "${DEBUG}" == true ] || [ "${CLEAR_DEBUG}" == true ]; then
+		# noglob
+		set +f
+		# verbose
+		set +v
+		# xtrace
+		set +x
+	fi;
+	
+	if [ ! -z "${1}" ] && [ "${1}" -eq "${1}" ] &>/dev/null; then
+		exit ${1}
+	fi
+	
+	exit ${EXIT_CODE}
+}
+
 : ' >>> SCRIPT <<< '
 
 EXIT_CODE=0 # DO NOT CHANGE THIS
@@ -480,7 +556,7 @@ get_distrib_version distrib_version
 distrib_version_name=""
 get_distrib_version_name distrib_version_name
 
-
+# Distribution Check
 if [ "${distrib_name_lowercase}" != "ubuntu" ] && [ "${distrib_name_lowercase}" != "debian" ] && [ "${distrib_name_lowercase}" != "debian gnu/linux" ]; then
 	if [ "${NOT_RECOMMEND_FORCE_RUN}" == false ]; then
 		echo -e ""
@@ -491,61 +567,58 @@ if [ "${distrib_name_lowercase}" != "ubuntu" ] && [ "${distrib_name_lowercase}" 
 		echo -e "${COLOR_WHITE}${COLOR_BOLD}----------------------------------------------------------------"
 		echo -e "${COLOR_RED}${COLOR_BOLD}  Setting 'NOT_RECOMMEND_FORCE_RUN' to 'true' forces the Script running!${COLOR_RESET}"
 		echo -e ""
-		exit 1
+		script_end 1
 	fi;
 fi;
 
-if ! command -v screen &> /dev/null && [ "${NOT_RECOMMEND_FORCE_RUN}" == false ]; then
-	echo -e "${COLOR_RED}${COLOR_BOLD}The required Package 'screen' isn't installed on your System!${COLOR_RESET}"
-	echo -e "${COLOR_YELLOW}${COLOR_BOLD}Type in 'apt-get update; apt-get install screen' to install this Package.${COLOR_RESET}"
-	exit 1
-fi;
+# Check for Dependencies
+require_package "screen"
+require_package "sudo"
 
-if ! command -v sudo &> /dev/null && [ "${NOT_RECOMMEND_FORCE_RUN}" == false ]; then
-	echo -e "${COLOR_RED}${COLOR_BOLD}The required Package 'sudo' isn't installed on your System!${COLOR_RESET}"
-	echo -e "${COLOR_YELLOW}${COLOR_BOLD}Type in 'apt-get update; apt-get install sudo' to install this Package.${COLOR_RESET}"
-	exit 1
-fi;
-
+# Check for Permissions
 if ! user_permitted "${EXECUTING_USER}"; then
 	echo -e "${COLOR_RED}${COLOR_BOLD}You are not permitted to run this Script!${COLOR_RESET}"
-	exit 1
+	script_end 1
 fi;
 
+# Check for valid SCREEN_NAME
 if ! [[ ${SCREEN_NAME} =~ ${REGEX_SCREEN_NAME} ]] || [[ ${SCREEN_NAME} =~ ${REGEX_SCREEN_NAME_KEEPER} ]]; then
 	echo -e "${COLOR_RED}${COLOR_BOLD}Invalid Name for Screen, given in Variable 'SCREEN_NAME'!${COLOR_RESET}\n"
-	exit 1
+	script_end 1
 fi;
 
+# Check if parent Process is a Shell
 if executed_bySSHD; then
 	echo -e "${COLOR_CYAN}${COLOR_BOLD}====================  [ ${SCREEN_NAME} | ${EXECUTING_USER} ]  ====================${COLOR_RESET}\n"
 fi;
 
+# Check if has to change user
 if ! redirect_processed; then
 	if ! correct_user_running; then
 		if user_exists "${EXECUTING_USER}"; then
 			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Trying to change the user authority...${COLOR_RESET}"
 			redirect_user "${EXECUTING_USER}"
-			exit $?
+			script_end $?
 		else
 			echo -e "${COLOR_RED}${COLOR_BOLD}User doesn't exists, given in Variable 'EXECUTING_USER'!${COLOR_RESET}"
-			exit 1
+			script_end 1
 		fi;
 	fi;
 else
 	if ! correct_user_running; then
 		echo -e "${COLOR_RED}${COLOR_BOLD}Failed to change the user authority!${COLOR_RESET}"
-		exit 1
+		script_end 1
 	else
 		echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully changed the user authority!${COLOR_RESET}\n"
 	fi;
 fi;
 
+# Check for command case
 case "${1}" in
 	start)
 		if screen_status "${SCREEN_NAME}"; then # IF [ SCREEN is running ]  OR  [ K_SCREEN is running ]
 			echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} is already running!${COLOR_RESET}"
-			exit 1
+			script_end 0
 		fi;
 		
 		# Start the Screen
@@ -568,9 +641,10 @@ case "${1}" in
 		
 		if ! screen_status "${SCREEN_NAME}"; then
 			echo -e "${COLOR_RED}${COLOR_BOLD}Failed to start the ${APPLICATION_NAME}!${COLOR_RESET}"
-			exit 1
+			script_end 1
 		else
 			echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully started the ${APPLICATION_NAME}!${COLOR_RESET}"
+			EXIT_CODE=0
 		fi;
 		
 		# Start the Keeper-Screen
@@ -578,7 +652,7 @@ case "${1}" in
 		if [ "${SCREEN_KEEPER}" == true ]; then
 			if screen_status "K_${SCREEN_NAME}"; then
 				echo -e "${COLOR_RED}${COLOR_BOLD}The Keeper for the ${APPLICATION_NAME} is already running!${COLOR_RESET}"
-				exit 0
+				script_end 0
 			fi;
 			
 			echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to start the Keeper for the ${APPLICATION_NAME}"
@@ -600,16 +674,17 @@ case "${1}" in
 			
 			if ! screen_status "K_${SCREEN_NAME}"; then
 				echo -e "${COLOR_RED}${COLOR_BOLD}Failed to start the Keeper for the ${APPLICATION_NAME}!${COLOR_RESET}"
-				exit 1
+				script_end 1
 			else
 				echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully started the Keeper for the ${APPLICATION_NAME}!${COLOR_RESET}"
+				script_end 0
 			fi;
 		fi;
 	;;
 	stop)
 		if ! screen_status "${SCREEN_NAME}" && ! screen_status "K_${SCREEN_NAME}"; then
 			echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} and the Keeper isn't running!${COLOR_RESET}"
-			exit 1
+			script_end 0
 		fi;
 		
 		# Stop the Keeper
@@ -625,73 +700,73 @@ case "${1}" in
 			
 			if ! screen_pid SCREEN_PID "K_${SCREEN_NAME}"; then
 				echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the Keeper of the ${APPLICATION_NAME} while getting the PID of the screen!${COLOR_RESET}"
-			fi;
-			
-			kill -SIGTERM "${SCREEN_PID}" 2> /dev/null
-			
-			counter=1
-			while [ "$counter" -le 10 ]; do
-				if screen_status "K_${SCREEN_NAME}"; then
-					echo -en "."
-					sleep 1
-				else
-					break
-				fi;
-				counter=$(($counter+1))
-			done;
-			unset -v counter
-			echo -e "${COLOR_RESET}"
-			
-			if ! screen_status "K_${SCREEN_NAME}"; then
-				echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully stopped the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
 			else
-				echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+				kill -SIGTERM "${SCREEN_PID}" 2> /dev/null
 				
-				if [ "${2}" == "force" ] || [ "${2}" == "brute-force" ]; then
-					echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to stop the Keeper of the ${APPLICATION_NAME} by sending a Quit-Signal"
-					
-					kill -SIGQUIT "${SCREEN_PID}" 2> /dev/null
-					
-					counter=1
-					while [ "$counter" -le 10 ]; do
-						if screen_status "K_${SCREEN_NAME}"; then
-							echo -en "."
-							sleep 1
-						else
-							break
-						fi;
-						counter=$(($counter+1))
-					done;
-					unset -v counter
-					echo -e "${COLOR_RESET}"
-					
-					
-					if ! screen_status "K_${SCREEN_NAME}"; then
-						echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully stopped the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+				counter=1
+				while [ "$counter" -le 10 ]; do
+					if screen_status "K_${SCREEN_NAME}"; then
+						echo -en "."
+						sleep 1
 					else
-						echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+						break
+					fi;
+					counter=$(($counter+1))
+				done;
+				unset -v counter
+				echo -e "${COLOR_RESET}"
+				
+				if ! screen_status "K_${SCREEN_NAME}"; then
+					echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully stopped the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+				else
+					echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+					
+					if [ "${2}" == "force" ] || [ "${2}" == "brute-force" ]; then
+						echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to stop the Keeper of the ${APPLICATION_NAME} by sending a Quit-Signal"
 						
-						if [ "${2}" == "brute-force" ]; then
-							echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to stop the Keeper of the ${APPLICATION_NAME} by sending a Kill-Signal"
-							
-							kill -SIGKILL "${SCREEN_PID}" 2> /dev/null
-							
-							counter=1
-							while [ "$counter" -le 10 ]; do
-								if screen_status "K_${SCREEN_NAME}"; then
-									echo -en "."
-									sleep 1
-								else
-									break
-								fi;
-								counter=$(($counter+1))
-							done;
-							unset -v counter
-							echo -e "${COLOR_RESET}"
-							
+						kill -SIGQUIT "${SCREEN_PID}" 2> /dev/null
+						
+						counter=1
+						while [ "$counter" -le 10 ]; do
 							if screen_status "K_${SCREEN_NAME}"; then
-								echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
-								echo -e "${COLOR_RED}${COLOR_BOLD}Finally the Keeper of the ${APPLICATION_NAME} is still running!${COLOR_RESET}"
+								echo -en "."
+								sleep 1
+							else
+								break
+							fi;
+							counter=$(($counter+1))
+						done;
+						unset -v counter
+						echo -e "${COLOR_RESET}"
+						
+						
+						if ! screen_status "K_${SCREEN_NAME}"; then
+							echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully stopped the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+						else
+							echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+							
+							if [ "${2}" == "brute-force" ]; then
+								echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to stop the Keeper of the ${APPLICATION_NAME} by sending a Kill-Signal"
+								
+								kill -SIGKILL "${SCREEN_PID}" 2> /dev/null
+								
+								counter=1
+								while [ "$counter" -le 10 ]; do
+									if screen_status "K_${SCREEN_NAME}"; then
+										echo -en "."
+										sleep 1
+									else
+										break
+									fi;
+									counter=$(($counter+1))
+								done;
+								unset -v counter
+								echo -e "${COLOR_RESET}"
+								
+								if screen_status "K_${SCREEN_NAME}"; then
+									echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+									echo -e "${COLOR_RED}${COLOR_BOLD}Finally the Keeper of the ${APPLICATION_NAME} is still running!${COLOR_RESET}"
+								fi;
 							fi;
 						fi;
 					fi;
@@ -727,9 +802,11 @@ case "${1}" in
 			
 			if ! screen_status "${SCREEN_NAME}" && [ "${ENABLE_USERDEFINED_STOP}" == true ]; then
 				echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully stopped the ${APPLICATION_NAME}!${COLOR_RESET}"
+				script_end 0
 			else
 				if [ "${ENABLE_USERDEFINED_STOP}" == true ]; then
 					echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the ${APPLICATION_NAME}!${COLOR_RESET}"
+					EXIT_CODE=1
 				else
 					echo -e "${COLOR_RED}${COLOR_BOLD}No userdefined stop was set!${COLOR_RESET}"
 				fi;
@@ -741,49 +818,54 @@ case "${1}" in
 					
 					if ! screen_pid SCREEN_PID "${SCREEN_NAME}"; then
 						echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the ${APPLICATION_NAME} while getting the PID of the screen!${COLOR_RESET}"
-					fi;
-					
-					kill -SIGTERM "${SCREEN_PID}" 2> /dev/null
-					
-					counter=1
-					while [ "$counter" -le 10 ]; do
-						if screen_status "${SCREEN_NAME}"; then
-							echo -en "."
-							sleep 1
-						else
-							break
-						fi;
-						counter=$(($counter+1))
-					done;
-					unset -v counter
-					echo -e "${COLOR_RESET}"
-					
-					if ! screen_status "${SCREEN_NAME}"; then
-						echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully stopped the ${APPLICATION_NAME}!${COLOR_RESET}"
+						script_end 1
 					else
-						echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the ${APPLICATION_NAME}!${COLOR_RESET}"
-						
-						if [ "${2}" == "brute-force" ]; then
-							echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to stop the ${APPLICATION_NAME} by sending a Kill-Signal"
-							
-							kill -SIGKILL "${SCREEN_PID}" 2> /dev/null
-							
-							counter=1
-							while [ "$counter" -le 10 ]; do
-								if screen_status "${SCREEN_NAME}"; then
-									echo -en "."
-									sleep 1
-								else
-									break
-								fi;
-								counter=$(($counter+1))
-							done;
-							unset -v counter
-							echo -e "${COLOR_RESET}"
-							
+						kill -SIGTERM "${SCREEN_PID}" 2> /dev/null
+					
+						counter=1
+						while [ "$counter" -le 10 ]; do
 							if screen_status "${SCREEN_NAME}"; then
-								echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the ${APPLICATION_NAME}!${COLOR_RESET}"
-								echo -e "${COLOR_RED}${COLOR_BOLD}Finally the ${APPLICATION_NAME} is still running!${COLOR_RESET}"
+								echo -en "."
+								sleep 1
+							else
+								break
+							fi;
+							counter=$(($counter+1))
+						done;
+						unset -v counter
+						echo -e "${COLOR_RESET}"
+						
+						if ! screen_status "${SCREEN_NAME}"; then
+							echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully stopped the ${APPLICATION_NAME}!${COLOR_RESET}"
+							script_end 0
+						else
+							echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the ${APPLICATION_NAME}!${COLOR_RESET}"
+							EXIT_CODE=1
+							
+							if [ "${2}" == "brute-force" ]; then
+								echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to stop the ${APPLICATION_NAME} by sending a Kill-Signal"
+								
+								kill -SIGKILL "${SCREEN_PID}" 2> /dev/null
+								
+								counter=1
+								while [ "$counter" -le 10 ]; do
+									if screen_status "${SCREEN_NAME}"; then
+										echo -en "."
+										sleep 1
+									else
+										break
+									fi;
+									counter=$(($counter+1))
+								done;
+								unset -v counter
+								echo -e "${COLOR_RESET}"
+								
+								if screen_status "${SCREEN_NAME}"; then
+									echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the ${APPLICATION_NAME}!${COLOR_RESET}"
+									echo -e "${COLOR_RED}${COLOR_BOLD}Finally the ${APPLICATION_NAME} is still running!${COLOR_RESET}"
+									
+									script_end 1
+								fi;
 							fi;
 						fi;
 					fi;
@@ -794,18 +876,13 @@ case "${1}" in
 		fi;
 	;;
 	restart)
-		: 'if ! screen_status "${SCREEN_NAME}" && ! screen_status "K_${SCREEN_NAME}"; then
-			echo -e "${COLOR_RED}${COLOR_BOLD}There is no ${APPLICATION_NAME} and Keeper running!${COLOR_RESET}"
-			exit 1
-		fi;'
 		echo -e "${COLOR_YELLOW}${COLOR_BOLD}Restart in progress...${COLOR_RESET}"
 		
-		${0} stop
-		: 'if screen_status "${SCREEN_NAME}" || screen_status "K_${SCREEN_NAME}"; then
-			echo -e "${COLOR_RED}${COLOR_BOLD}Failed to restart! Restart-progress stopped.${COLOR_RESET}"
-			exit 1
-		fi;'
-		${0} start
+		${0} stop \
+			&& ${0} start \
+			|| script_end 1
+			
+		script_end 0
 	;;
 	status)
 		if screen_status "${SCREEN_NAME}"; then
@@ -820,18 +897,26 @@ case "${1}" in
 			else
 				echo -e "${COLOR_RED}${COLOR_BOLD}The Keeper of the ${APPLICATION_NAME} isn't running!${COLOR_RESET}"
 			fi;
+		else
+			if ! screen_status "${SCREEN_NAME}"; then
+				script_end 1
+			fi;
 		fi;
+		
+		script_end 0
 	;;
 	console)
 		if ! screen_status "${SCREEN_NAME}"; then
 			echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} isn't running!${COLOR_RESET}"
-			exit 1
+			script_end 1
 		fi;
 		
 		if ! screen_reattach "${SCREEN_NAME}"; then
 			echo -e "${COLOR_RED}${COLOR_BOLD}Couldn't reattach the screen of the ${APPLICATION_NAME}!${COLOR_RESET}"
+			script_end 1
 		else
 			clear; clear
+			script_end 0
 		fi;
 	;;
 	help)
@@ -851,22 +936,14 @@ case "${1}" in
 			*)
 				echo -e "\e[93mUse: \"${0} help {start|stop|status|console}\" for details"
 		esac
+		
+		EXIT_CODE=1
 	;;
 	*)
-		CMDLINE=$(ps -p ${PPID} -o args --no-headers)
-		
-		if [ -z "${1}" ] \
-			&& ( ( [ "$(echo -e "${CMDLINE}" | awk '{print $1}')" == "SCREEN" ] \
-			&& [ "$(echo -e "${CMDLINE}" | awk '{print $2}')" == "-admS" ] \
-			&& [ "$(echo -e "${CMDLINE}" | awk '{print $3}')" == "K_${SCREEN_NAME}" ] \
-			&& [ "$(basename $(echo -e "${CMDLINE}" | awk '{print substr($0, index($0,$4))}') 2> /dev/null)" == "$(basename ${0} 2> /dev/null)" ] ) \
-			|| ( [ -e "$(basename $(echo -e "${CMDLINE}" | awk '{print substr($0, index($0,$2))}') 2> /dev/null)" ] \
-				&& [ "$(basename $(echo -e "${CMDLINE}" | awk '{print substr($0, index($0,$2))}') 2> /dev/null)" == "$(basename ${0} 2> /dev/null)" ] ) ); then
-			# Only accessible in a screen with the right name.
-			
+		if executed_byKeeperScreen; then
 			if [ "${SCREEN_KEEPER}" != true ]; then
 				echo -e "${COLOR_WHITE}${COLOR_BOLD}The Keeper for the ${APPLICATION_NAME} isn't enabled!${COLOR_RESET}"
-				exit 1
+				script_end 1
 			fi;
 			
 			: '
@@ -948,18 +1025,24 @@ case "${1}" in
 	;;
 esac
 
-unset -v APPLICATION_NAME SCREEN_NAME EXECUTION_FILE EXECUTING_USER SCREEN_KEEPER MIN_ELAPSED_TIME RESTART_DELAY
-
-exit ${EXIT_CODE}
+script_end
 
 : '
 	**************************************
 	***  Copyright (C) © 2016 Mike R.  ***
+	***                & 2017          ***
+	***                & 2018          ***
 	***      All rights reserved.      ***
-	***     Selling is prohibited!     ***
+	***  GitHub.com/MikesCodeProjects  ***
+	**************************************
+	***      !! Usage allowed !!       ***
+	***   ~ private && commercial ~    ***
+	***    !! Selling forbidden !!     ***
+	***      ~ for all purposes ~      ***
 	**************************************
 	
-	This Script was tested on Debian 8 (Jessie) and Ubuntu 16.10 (Yakkety Yak)
+	Script tested on Debian 8 (Jessie) and Ubuntu 16.10 (Yakkety Yak)
+	Also tested usage in Docker Container with Ubuntu 17.10 (Artful Aardvark) installed.
 	
 	Example-Filename:	control.sh
 	Example-Execution:	./control.sh
