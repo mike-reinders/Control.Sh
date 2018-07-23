@@ -23,7 +23,7 @@ Download: [control.sh](control.sh)
 Commands:  
 `./control.sh start` *Starts the managed application*  
 `./control.sh stop` *Stops the managed application*  
-`./control.sh run` *Runs the managed application in foreground*
+`./control.sh run` *Runs the managed application in foreground*  
 `./control.sh restart` *Restarts the managed application*  
 `./control.sh status` *Shows running status of the managed application*  
 `./control.sh console` *Gets you into the console of the managed application*
