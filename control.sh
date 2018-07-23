@@ -34,32 +34,26 @@
 
 : ' >>> NOVICE-SETUP <<< '
 
-APPLICATION_NAME="Minecraft-Server"
-SCREEN_NAME="MarioMinecraftServer" # No dots! No lead with 'K_'!
-EXECUTION_FILE="java -jar forge-1.7.10-10.13.4.1558-1.7.10-universal.jar nogui"
+APPLICATION_NAME="Application-Server"
+SCREEN_NAME="ApplicationScreenName" # No dots! No lead with 'K_'!
+EXECUTION_FILE="startfile -parameter1 -parameter2"
 EXECUTING_USER="root"
 
-SCREEN_KEEPER=true
+SCREEN_KEEPER=false
 MIN_ELAPSED_TIME=30
 MAXCOUNT_TIME_EXCEEDED=3
-RESTART_DELAY=5
+RESTART_DELAY=0
 
 : ' >>> ADVANCED-SETUP <<< '
 
 NOT_RECOMMEND_FORCE_RUN=false
 
-ENABLE_USERDEFINED_STOP=true
+ENABLE_USERDEFINED_STOP=false
 function userdefined_stop() { # Params: SCREEN_NAME/SCREEN_NAME_FULL
 	# For commands to send or so...
 	
-	screen_send_cmd "${1}" "save-all"
-	echo -en "."
-	sleep 1
-	
-	screen_send_cmd "${1}" "stop"
-	echo -en "."
-	sleep 1
-	
+	# Do something here, that leads to application exit
+
 	return 0
 }
 
