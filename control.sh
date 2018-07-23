@@ -34,25 +34,31 @@
 
 : ' >>> NOVICE-SETUP <<< '
 
-APPLICATION_NAME="Application-Server"
-SCREEN_NAME="ApplicationScreenName" # No dots! No lead with 'K_'!
-EXECUTION_FILE="startfile -parameter1 -parameter2"
+APPLICATION_NAME="Minecraft-Server"
+SCREEN_NAME="MarioMinecraftServer" # No dots! No lead with 'K_'!
+EXECUTION_FILE="java -jar forge-1.7.10-10.13.4.1558-1.7.10-universal.jar nogui"
 EXECUTING_USER="root"
 
-SCREEN_KEEPER=false
+SCREEN_KEEPER=true
 MIN_ELAPSED_TIME=30
 MAXCOUNT_TIME_EXCEEDED=3
-RESTART_DELAY=0
+RESTART_DELAY=5
 
 : ' >>> ADVANCED-SETUP <<< '
 
 NOT_RECOMMEND_FORCE_RUN=false
 
-ENABLE_USERDEFINED_STOP=false
+ENABLE_USERDEFINED_STOP=true
 function userdefined_stop() { # Params: SCREEN_NAME/SCREEN_NAME_FULL
 	# For commands to send or so...
 	
-	# Do something here, that leads to application exit
+	screen_send_cmd "${1}" "save-all"
+	echo -en "."
+	sleep 1
+	
+	screen_send_cmd "${1}" "stop"
+	echo -en "."
+	sleep 1
 	
 	return 0
 }
@@ -875,6 +881,57 @@ case "${1}" in
 			fi;
 		fi;
 	;;
+	run)
+		if screen_status "${SCREEN_NAME}" || screen_status "K_${SCREEN_NAME}"; then
+			echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} or the Keeper is running!${COLOR_RESET}"
+			script_end 0
+		fi;
+		
+		# Variables
+		COUNT_TIME_EXCEEDED=0
+		LAST_START_TIME=$(($(date +%s) - ${MIN_ELAPSED_TIME}))
+		
+		${EXECUTION_FILE}
+		
+		if [ "${2}" == "keeper" ]; then
+			
+			WHILE_ENABLED=true
+			
+			# Traps
+			trap "WHILE_ENABLED=false" SIGINT SIGKILL SIGTERM SIGQUIT
+			
+			while [ "${WHILE_ENABLED}" == true ]; do
+				if [ "${RESTART_DELAY}" -gt 0 ]; then
+					echo -e "${COLOR_WHITE}${COLOR_BOLD}Trying to re-/start the ${APPLICATION_NAME} in ${RESTART_DELAY} seconds!${COLOR_RESET}"
+					counter=0
+					while [ "$counter" -le $((${RESTART_DELAY} / 2)) ] && [ "${WHILE_ENABLED}" == true ]; do
+						sleep 1
+						counter=$(($counter+1))
+					done;
+				else
+					echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to re-/start the ${APPLICATION_NAME}"
+				fi;
+				
+				LAST_START_TIME=$(($(date +%s) - ${MIN_ELAPSED_TIME}))
+				${EXECUTION_FILE}
+				
+				if [ "$(($(date +%s) - ${LAST_START_TIME}))" -ge "${MIN_ELAPSED_TIME}" ] || [ "${MIN_ELAPSED_TIME}" -eq 0 ]; then
+					COUNT_TIME_EXCEEDED=0
+				else
+					COUNT_TIME_EXCEEDED=$((${COUNT_TIME_EXCEEDED}+1))
+				fi;
+				
+				if [ "$?" -ne 0 ] || [ "${COUNT_TIME_EXCEEDED}" -gt "${MAXCOUNT_TIME_EXCEEDED}" ]; then
+					echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} will not re-/start!${COLOR_RESET}"
+					WHILE_ENABLED=false
+				fi;
+			
+				sleep 1
+			done;
+		fi;
+		
+		unset -v COUNT_TIME_EXCEEDED LAST_START_TIME TRYING_START_SINCE TRIED_START_SCREEN
+	;;
 	restart)
 		echo -e "${COLOR_YELLOW}${COLOR_BOLD}Restart in progress...${COLOR_RESET}"
 		
@@ -940,7 +997,7 @@ case "${1}" in
 		EXIT_CODE=1
 	;;
 	*)
-		if executed_byKeeperScreen; then
+		if executed_byKeeperScreen $@; then
 			if [ "${SCREEN_KEEPER}" != true ]; then
 				echo -e "${COLOR_WHITE}${COLOR_BOLD}The Keeper for the ${APPLICATION_NAME} isn't enabled!${COLOR_RESET}"
 				script_end 1
