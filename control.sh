@@ -25,6 +25,7 @@
 		----------------------------------------------------------------------
 		./control.sh	start				Starts the server.
 		./control.sh	stop				Stops the server.
+		./control.sh	run				Run the server in foreground.
 		./control.sh	restart				Restarts the server.
 		./control.sh	status				Shows: Is the server running?
 		./control.sh	console				Opens the servers console.
@@ -1069,7 +1070,7 @@ case "${1}" in
 			
 			unset -v COUNT_TIME_EXCEEDED LAST_START_TIME TRYING_START_SINCE TRIED_START_SCREEN
 		else
-			echo -e "\e[93mUsage: ${0} {start|stop|restart|status|console|help}"
+			echo -e "\e[93mUsage: ${0} {start|stop|run|restart|status|console|help}"
 		fi;
 		
 		unset -v CMDLINE
@@ -1103,6 +1104,7 @@ script_end
 		----------------------------------------------------------------------
 		./control.sh	start				Starts the server.
 		./control.sh	stop				Stops the server.
+                ./control.sh    run                             Run the server in foreground.
 		./control.sh	restart				Restarts the server.
 		./control.sh	status				Shows: Is the server running?
 		./control.sh	console				Opens the servers console.
