@@ -176,6 +176,7 @@ function redirect_user() { # Params: USER
 }
 
 function redirect_processed() {
+	if [ "${PPID}" -eq "0" ]; then return 1; fi;
 	PARENT_PID=$(ps -o ppid= ${PPID} | sed -e 's/^[ ]//' )
 	if [ "${PARENT_PID}" -eq "0" ]; then return 1; fi;
 	
@@ -214,6 +215,7 @@ function executed_byBash() {
 }
 
 function executed_bySSHD() {
+	if [ "${PPID}" -eq "0" ]; then return 1; fi;
 	PARENT_PID=$(ps -o ppid= ${PPID} | sed -e 's/^[ ]//' )
 	if [ "${PARENT_PID}" -eq "0" ]; then return 1; fi;
 	
