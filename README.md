@@ -37,9 +37,9 @@ if you use **CTRL + C** it **KILLS** the managed application and **ALL data is l
 
 Change following lines/variables:
 ```
-33: SCREEN_NAME="ApplicationScreenName" # the screen name; only change it if you use multiple applications using `screen`
-34: EXECUTION_FILE="startfile -parameter1 -parameter2" # your filename and parameters
-35: EXECUTING_USER="root" # which user do you want to run the application
+39: SCREEN_NAME="ApplicationScreenName" # the screen name; only change it if you use multiple applications using `screen`
+40: EXECUTION_FILE="startfile -parameter1 -parameter2" # your filename and parameters
+41: EXECUTING_USER="root" # which user do you want to run the application
 ```
 
 # Configuration
@@ -50,58 +50,58 @@ There are two types of configuration:
 
 ## Simple Configuration
 
-**Variable:** `APPLICATION_NAME="Application-Server"` (line 33)  
+**Variable:** `APPLICATION_NAME="Application-Server"` (line 38)  
  &nbsp; &nbsp; **Function:**  
  &nbsp; &nbsp; &nbsp; Specifies the name of the managed application.
 
-**Variable:** `SCREEN_NAME="ApplicationScreenName"` (line 34)  
+**Variable:** `SCREEN_NAME="ApplicationScreenName"` (line 39)  
  &nbsp; &nbsp; **Function:**  
  &nbsp; &nbsp; &nbsp; Specifies the Screen-Name which is used to identify the managed application.  
  &nbsp; &nbsp; **Variable Restrictions:**  
  &nbsp; &nbsp; &nbsp; Regular Expression: Every Character except Whitespaces, Dots and no lead with `K_`
 
-**Variable:** `EXECUTION_FILE="startfile -parameter1 -parameter2"` (line 35)  
+**Variable:** `EXECUTION_FILE="startfile -parameter1 -parameter2"` (line 40)  
  &nbsp; &nbsp; **Function:**  
  &nbsp; &nbsp; &nbsp; Declares the start file and its needed parameters.
 
-**Variable:** `EXECUTING_USER="root"` (line 36)  
+**Variable:** `EXECUTING_USER="root"` (line 41)  
  &nbsp; &nbsp; **Function:**  
  &nbsp; &nbsp; &nbsp; Declares the user which is used to run the managed application/(keeper)script  
  &nbsp; &nbsp; **Note:**  
  &nbsp; &nbsp; &nbsp; if the user to be executed is not root and not the given user in this variable,  
  &nbsp; &nbsp; &nbsp; you will get an error on execution.
 
-**Variable:** `SCREEN_KEEPER=false` (line 38)  
+**Variable:** `SCREEN_KEEPER=false` (line 43)  
  &nbsp; &nbsp; **Function:**  
  &nbsp; &nbsp; &nbsp; Indicates whether the screen-keeper will be started on `./control.sh start`  
  &nbsp; &nbsp; **Note:**  
  &nbsp; &nbsp; &nbsp; The keeper restarts your application when it closed.
 
-**Variable:** `MIN_ELAPSED_TIME=30` (line 39)  
+**Variable:** `MIN_ELAPSED_TIME=30` (line 44)  
  &nbsp; &nbsp; **Function:**  
  &nbsp; &nbsp; &nbsp; Specifies how much seconds has to be elapsed between start (incl. restart) and close,  
  &nbsp; &nbsp; &nbsp; before the start-event of the application is considered as failed.
 
-**Variable:** `MAXCOUNT_TIME_EXCEEDED=3` (line 40)  
+**Variable:** `MAXCOUNT_TIME_EXCEEDED=3` (line 45)  
  &nbsp; &nbsp; **Function:**  
  &nbsp; &nbsp; &nbsp; Specifies how much times the keeper will restart your managed application after failed start-events.
 
-**Variable:** `RESTART_DELAY=0` (line 41)  
+**Variable:** `RESTART_DELAY=0` (line 46)  
  &nbsp; &nbsp; **Function:**  
  &nbsp; &nbsp; &nbsp; Specifies the restart-delay  
  &nbsp; &nbsp; &nbsp; (how much seconds the keeper waits until it restarts your managed application)
 
 ## Advanced Configuration
 
-**Variable:** `NOT_RECOMMEND_FORCE_RUN=false` (line 45)  
+**Variable:** `NOT_RECOMMEND_FORCE_RUN=false` (line 50)  
  &nbsp; &nbsp; **Function:**  
  &nbsp; &nbsp; &nbsp; Indicates whether the script deactivates the distribution-check.
 
-**Variable:** `ENABLE_USERDEFINED_STOP=false` (line 47)  
+**Variable:** `ENABLE_USERDEFINED_STOP=false` (line 52)  
  &nbsp; &nbsp; **Function:**  
  &nbsp; &nbsp; &nbsp; Indicates whether the script executes the function userdefined_stop() when `./control.sh stop` is beeing executed.
 
-**Function:** `function userdefined_stop() {` (line 48)  
+**Function:** `function userdefined_stop() {` (line 53)  
  &nbsp; &nbsp; **Function:**  
  &nbsp; &nbsp; &nbsp; Contains the code, that gets executed when `./control.sh stop` is beeing executed.    &nbsp; &nbsp;
  &nbsp; &nbsp; **Default Function:**  
