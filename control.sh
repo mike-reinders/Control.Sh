@@ -14,8 +14,8 @@
 	***      ~ for all purposes ~      ***
 	**************************************
 	
-	Script tested on Debian 8 (Jessie) and Ubuntu 16.10 (Yakkety Yak)
-	Also tested usage in Docker Container with Ubuntu 17.10 (Artful Aardvark) installed.
+	Script tested on Debian 8 (Jessie), Ubuntu 16.10 (Yakkety Yak) and Ubuntu 18.04 (Bionic Beaver)
+	Also tested usage in Docker Container with Ubuntu 17.10 (Artful Aardvark) / Ubuntu 18.04 (Bionic Beaver) installed.
 	
 	Example-Filename:	control.sh
 	Example-Execution:	./control.sh
@@ -506,9 +506,15 @@ function get_distrib_version_name() { # Params: RETURN
 			distrib_version_name_return="Yakkety Yak"
 		elif [ "${f_distrib_version}" == "17.04" ]; then
 			distrib_version_name_return="Zesty Zapus"
+		elif [ "${f_distrib_version}" == "17.10" ]; then
+			distrib_version_name_return="Artful Aardvark"
+		elif [ "${f_distrib_version}" == "18.04" ]; then
+			distrib_version_name_return="Bionic Beaver"
+		elif [ "${f_distrib_version}" == "18.10" ]; then
+			distrib_version_name_return="Cosmic Cuttlefish"
 		fi;
 	fi;
-	
+
 	if [ -z "${distrib_version_name_return}" ]; then
 		distrib_version_name_return="Unknown Codename"
 	fi;
@@ -566,7 +572,7 @@ if [ "${distrib_name_lowercase}" != "ubuntu" ] && [ "${distrib_name_lowercase}" 
 		echo -e "${COLOR_RED}${COLOR_BOLD}  Your System is not intended to run this Script!${COLOR_RESET}"
 		echo -e "${COLOR_WHITE}${COLOR_BOLD}----------------------------------------------------------------"
 		echo -e "${COLOR_WHITE}${COLOR_BOLD}  Current Distribution:		${COLOR_YELLOW}${distrib_name} ${distrib_version} ${distrib_version_name}*${COLOR_RESET}"
-		echo -e "${COLOR_WHITE}${COLOR_BOLD}  Supported Distribution:	${COLOR_YELLOW}Debian 7+ or Ubuntu 12.04+${COLOR_RESET}"
+		echo -e "${COLOR_WHITE}${COLOR_BOLD}  Supported Distribution:	${COLOR_YELLOW}Debian 7+ or Ubuntu 18.04+${COLOR_RESET}"
 		echo -e "${COLOR_WHITE}${COLOR_BOLD}----------------------------------------------------------------"
 		echo -e "${COLOR_RED}${COLOR_BOLD}  Setting 'NOT_RECOMMEND_FORCE_RUN' to 'true' forces the Script running!${COLOR_RESET}"
 		echo -e ""
@@ -1095,8 +1101,8 @@ script_end
 	***      ~ for all purposes ~      ***
 	**************************************
 	
-	Script tested on Debian 8 (Jessie) and Ubuntu 16.10 (Yakkety Yak)
-	Also tested usage in Docker Container with Ubuntu 17.10 (Artful Aardvark) installed.
+	Script tested on Debian 8 (Jessie), Ubuntu 16.10 (Yakkety Yak) and Ubuntu 18.04 (Bionic Beaver)
+	Also tested usage in Docker Container with Ubuntu 17.10 (Artful Aardvark) / Ubuntu 18.04 (Bionic Beaver) installed.
 	
 	Example-Filename:	control.sh
 	Example-Execution:	./control.sh
