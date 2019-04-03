@@ -103,9 +103,9 @@ There are two types of configuration:
 
 **Function:** `function userdefined_stop() {` (line 53)  
  &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Contains the code, that gets executed when `./control.sh stop` is beeing executed.    &nbsp; &nbsp;
+ &nbsp; &nbsp; &nbsp; Contains the code, that gets executed when `./control.sh stop` is beeing executed.    &nbsp; &nbsp;  
  &nbsp; &nbsp; **Default Function:**  
- &nbsp; &nbsp; &nbsp; Command `save-all` and `stop` will be sent via STD:IN-Pipe with 1 seconds delay after each command.
+ &nbsp; &nbsp; &nbsp; Command `save-all` and `stop` will be sent via STD:IN-Pipe with 1 seconds delay after each command.  
  &nbsp; &nbsp; **Note:**  
  &nbsp; &nbsp; &nbsp; This method will be executed before the script tries to terminate the process or tries to killing it.  
  &nbsp; &nbsp; &nbsp; The managed application got 10 seconds before step 2 (termination) and additional 10 seconds before step 3 (killing)  
