@@ -982,19 +982,19 @@ case "${1}" in
 	help)
 		case "$2" in
 			start)
-				echo -e "\e[93mUse: \"${0} ${2}\" to start ${APPLICATION_NAME}."
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to start ${APPLICATION_NAME}.${COLOR_RESET}"
 			;;
 			stop)
-				echo -e "\e[93mUse: \"${0} ${2}\" to stop ${APPLICATION_NAME}."
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to stop ${APPLICATION_NAME}.${COLOR_RESET}"
 			;;
 			status)
-				echo -e "\e[93mUse: \"${0} ${2}\" to show ${APPLICATION_NAME} is online or offline."
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to show ${APPLICATION_NAME} is online or offline.${COLOR_RESET}"
 			;;
 			console)
-				echo -e "\e[93mUse: \"${0} ${2}\" to go into ${APPLICATION_NAME}-Console."
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to go into ${APPLICATION_NAME}-Console.${COLOR_RESET}"
 			;;
 			*)
-				echo -e "\e[93mUse: \"${0} help {start|stop|status|console}\" for details"
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} help {start|stop|status|console}\" for details${COLOR_RESET}"
 		esac
 		
 		EXIT_CODE=1
@@ -1078,7 +1078,7 @@ case "${1}" in
 			
 			unset -v COUNT_TIME_EXCEEDED LAST_START_TIME TRYING_START_SINCE TRIED_START_SCREEN
 		else
-			echo -e "\e[93mUsage: ${0} {start|stop|run|restart|status|console|help}"
+			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Usage: ${0} {start|stop|run|restart|status|console|help}${COLOR_RESET}"
 		fi;
 		
 		unset -v CMDLINE
