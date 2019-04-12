@@ -45,6 +45,8 @@ MIN_ELAPSED_TIME=30
 MAXCOUNT_TIME_EXCEEDED=3
 RESTART_DELAY=0
 
+CONFIG_FILE="control.cfg"
+
 : ' >>> ADVANCED-SETUP <<< '
 
 NOT_RECOMMEND_FORCE_RUN=false
@@ -579,6 +581,22 @@ if [ "${distrib_name_lowercase}" != "ubuntu" ] && [ "${distrib_name_lowercase}" 
 		script_end 1
 	fi;
 fi;
+
+# Import CONFIG_FILE, if existing
+if [ -f "${CONFIG_FILE}" ]; then
+	eval "`. ${CONFIG_FILE}&>/dev/null
+	[ -v APPLICATION_NAME ] && declare -p APPLICATION_NAME 2>/dev/null
+	[ -v SCREEN_NAME ] && declare -p SCREEN_NAME 2>/dev/null
+	[ -v EXECUTION_FILE ] && declare -p EXECUTION_FILE 2>/dev/null
+	[ -v EXECUTING_USER ] && declare -p EXECUTING_USER 2>/dev/null
+	[ -v SCREEN_KEEPER ] && declare -p SCREEN_KEEPER 2>/dev/null
+	[ -v MIN_ELAPSED_TIME ] && declare -p MIN_ELAPSED_TIME 2>/dev/null
+	[ -v MAXCOUNT_TIME_EXCEEDED ] && declare -p MAXCOUNT_TIME_EXCEEDED 2>/dev/null
+	[ -v RESTART_DELAY ] && declare -p RESTART_DELAY 2>/dev/null
+	[ -v NOT_RECOMMEND_FORCE_RUN ] && declare -p NOT_RECOMMEND_FORCE_RUN 2>/dev/null
+	[ -v ENABLE_USERDEFINED_STOP ] && declare -p ENABLE_USERDEFINED_STOP 2>/dev/null
+	[ "$(type -t userdefined_stop)" == "function" ] && declare -f userdefined_stop 2>/dev/null`"
+fi
 
 # Check for Dependencies
 require_package "screen"
