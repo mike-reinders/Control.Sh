@@ -28,6 +28,7 @@
 		./control.sh	run				Run the server in foreground.
 		./control.sh	restart				Restarts the server.
 		./control.sh	status				Shows: Is the server running?
+		./control.sh	join				Joins the application and exits, when waittime was reached or application stops.
 		./control.sh	console				Opens the servers console.
 		./control.sh	help				Shows the help-page.
 		./control.sh	* (wildcard)		Shows you the usage.
@@ -979,6 +980,36 @@ case "${1}" in
 
 		script_end $(screen_status "${SCREEN_NAME}"; echo ${?})
 	;;
+	join)
+		if ! screen_status "${SCREEN_NAME}"; then
+			echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} isn't running!${COLOR_RESET}"
+			script_end 1
+		fi
+
+		START_TIME=`date +%s`
+		JOIN_TIME=0
+
+		if [ "${2}" -eq "${2}" ] &>/dev/null; then
+			JOIN_TIME=${2}
+		fi
+		while screen_status "${SCREEN_NAME}" && ([ "${JOIN_TIME}" -le 0 ] || [ "$(($(date +%s) - ${START_TIME}))" -lt "${JOIN_TIME}" ]); do
+			SLEEP_TIME=10
+
+			if [ "${JOIN_TIME}" -gt 0 ] && [ "$((${JOIN_TIME} - ($(date +%s) - ${START_TIME})))" -lt 10 ]; then
+				SLEEP_TIME=$((${JOIN_TIME} - ($(date +%s) - ${START_TIME})))
+			fi
+
+			sleep ${SLEEP_TIME}s
+		done
+
+		if screen_status "${SCREEN_NAME}"; then
+			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Join was cancelled due to insufficient time!${COLOR_RESET}"
+		else
+			echo -e "${COLOR_GREEN}${COLOR_BOLD}${APPLICATION_NAME} stopped!${COLOR_RESET}"
+		fi
+
+		script_end 0
+	;;
 	console)
 		if ! screen_status "${SCREEN_NAME}"; then
 			echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} isn't running!${COLOR_RESET}"
@@ -1001,8 +1032,17 @@ case "${1}" in
 			stop)
 				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to stop ${APPLICATION_NAME}.${COLOR_RESET}"
 			;;
+			run)
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to run ${APPLICATION_NAME} in foreground.${COLOR_RESET}"
+			;;
+			restart)
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to restart ${APPLICATION_NAME}.${COLOR_RESET}"
+			;;
 			status)
 				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to show ${APPLICATION_NAME} is online or offline.${COLOR_RESET}"
+			;;
+			join)
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to join ${APPLICATION_NAME} and exit when waittime was reached or application stops.${COLOR_RESET}"
 			;;
 			console)
 				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to go into ${APPLICATION_NAME}-Console.${COLOR_RESET}"
@@ -1092,7 +1132,7 @@ case "${1}" in
 			
 			unset -v COUNT_TIME_EXCEEDED LAST_START_TIME TRYING_START_SINCE TRIED_START_SCREEN
 		else
-			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Usage: ${0} {start|stop|run|restart|status|console|help}${COLOR_RESET}"
+			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Usage: ${0} {start|stop|run|restart|status|join|console|help}${COLOR_RESET}"
 		fi;
 		
 		unset -v CMDLINE
@@ -1129,6 +1169,7 @@ script_end
                 ./control.sh    run                             Run the server in foreground.
 		./control.sh	restart				Restarts the server.
 		./control.sh	status				Shows: Is the server running?
+		./control.sh	join				Joins the application and exits, when waittime was reached or application stops.
 		./control.sh	console				Opens the servers console.
 		./control.sh	help				Shows the help-page.
 		./control.sh	* (wildcard)		Shows you the usage.
