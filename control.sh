@@ -975,13 +975,9 @@ case "${1}" in
 			else
 				echo -e "${COLOR_RED}${COLOR_BOLD}The Keeper of the ${APPLICATION_NAME} isn't running!${COLOR_RESET}"
 			fi;
-		else
-			if ! screen_status "${SCREEN_NAME}"; then
-				script_end 1
-			fi;
 		fi;
-		
-		script_end 0
+
+		script_end $(screen_status "${SCREEN_NAME}"; echo ${?})
 	;;
 	console)
 		if ! screen_status "${SCREEN_NAME}"; then
