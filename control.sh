@@ -6,7 +6,7 @@
 	***                & 2017          ***
 	***                & 2018          ***
 	***      All rights reserved.      ***
-	***  GitHub.com/MikesCodeProjects  ***
+	***      GitHub.com/MikesR-GH      ***
 	**************************************
 	***      !! Usage allowed !!       ***
 	***   ~ private && commercial ~    ***
@@ -1111,7 +1111,7 @@ script_end
 	***                & 2017          ***
 	***                & 2018          ***
 	***      All rights reserved.      ***
-	***  GitHub.com/MikesCodeProjects  ***
+	***      GitHub.com/MikesR-GH      ***
 	**************************************
 	***      !! Usage allowed !!       ***
 	***   ~ private && commercial ~    ***
