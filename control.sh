@@ -988,10 +988,16 @@ case "${1}" in
 
 		START_TIME=`date +%s`
 		JOIN_TIME=0
-
 		if [ "${2}" -eq "${2}" ] &>/dev/null; then
 			JOIN_TIME=${2}
 		fi
+
+		if [ "${JOIN_TIME}" -gt 0 ]; then
+			echo -e "${COLOR_GREEN}${COLOR_BOLD}Waiting for ${JOIN_TIME} seconds or ${APPLICATION_NAME} to exit"
+		else
+			echo -e "${COLOR_GREEN}${COLOR_BOLD}Waiting for ${APPLICATION_NAME} to exit"
+		fi
+
 		while screen_status "${SCREEN_NAME}" && ([ "${JOIN_TIME}" -le 0 ] || [ "$(($(date +%s) - ${START_TIME}))" -lt "${JOIN_TIME}" ]); do
 			SLEEP_TIME=10
 
@@ -1003,7 +1009,7 @@ case "${1}" in
 		done
 
 		if screen_status "${SCREEN_NAME}"; then
-			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Join was cancelled due to insufficient time!${COLOR_RESET}"
+			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Join was cancelled because waittime exceeded ${JOIN_TIME} seconds!${COLOR_RESET}"
 		else
 			echo -e "${COLOR_GREEN}${COLOR_BOLD}${APPLICATION_NAME} stopped!${COLOR_RESET}"
 		fi
