@@ -169,8 +169,7 @@ function redirect_user() { # Params: USER
 		if user_permitted "${1}"; then
 			if ! correct_user_running; then
 				sudo -u ${1} ${FULL_COMMAND_LINE}
-				unset -v FULL_COMMAND_LINE
-				return $?
+				return ${?}
 			fi;
 		fi;
 	fi;
@@ -626,7 +625,7 @@ if ! redirect_processed; then
 		if user_exists "${EXECUTING_USER}"; then
 			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Trying to change the user authority...${COLOR_RESET}"
 			redirect_user "${EXECUTING_USER}"
-			script_end $?
+			script_end ${?}
 		else
 			echo -e "${COLOR_RED}${COLOR_BOLD}User doesn't exists, given in Variable 'EXECUTING_USER'!${COLOR_RESET}"
 			script_end 1
