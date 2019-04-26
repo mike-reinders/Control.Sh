@@ -29,6 +29,7 @@
 		./control.sh	run				Run the server in foreground.
 		./control.sh	restart				Restarts the server.
 		./control.sh	status				Shows: Is the server running?
+		./control.sh	last-exit-code			Returns and displays the last exit code
 		./control.sh	join				Joins the application and exits, when waittime was reached or application stops.
 		./control.sh	console				Opens the servers console.
 		./control.sh	help				Shows the help-page.
@@ -46,6 +47,7 @@ SCREEN_KEEPER=false
 MIN_ELAPSED_TIME=30
 MAXCOUNT_TIME_EXCEEDED=3
 RESTART_DELAY=0
+RESTART_ONFAILURE_ONLY=true
 
 CONFIG_FILE="control.cfg"
 
@@ -351,10 +353,27 @@ function screen_status() { # Params: SCREEN_NAME/SCREEN_NAME_FULL
 	return 1
 }
 
+function screen_last_exitcode() { # Params:
+	if [ -n "${1}" ]; then
+		local SCREEN_EXIT_FILE="$(echo ~)/.screen-exit.${SCREEN_NAME}"
+		if [ -f "${SCREEN_EXIT_FILE}" ]; then
+			read -r SCREEN_EXIT_CODE_TMP<"${SCREEN_EXIT_FILE}"
+			local SCREEN_EXIT_CODE=${SCREEN_EXIT_CODE_TMP}
+			unset -v SCREEN_EXIT_CODE_TMP
+
+			if [ "${SCREEN_EXIT_CODE}" -eq "${SCREEN_EXIT_CODE}" ] &>/dev/null; then
+				return ${SCREEN_EXIT_CODE}
+			fi
+		fi
+	fi
+
+	return 255
+}
+
 function screen_start() { # Params: SCREEN_NAME COMMAND_LINE
-	if [[ ${1} =~ ${REGEX_SCREEN_NAME} ]] && [ ! -z "${2}" ]; then
+	if [[ ${1} =~ ${REGEX_SCREEN_NAME} ]] && [ "${#}" -ge 2 ]; then
 		if ! screen_status "${1}"; then
-			screen -admS ${1} ${2}
+			screen -admS ${1} "${@:2}"
 			return 0
 		fi;
 	fi;
@@ -594,6 +613,7 @@ if [ -f "${CONFIG_FILE}" ]; then
 	[ -v MIN_ELAPSED_TIME ] && declare -p MIN_ELAPSED_TIME 2>/dev/null
 	[ -v MAXCOUNT_TIME_EXCEEDED ] && declare -p MAXCOUNT_TIME_EXCEEDED 2>/dev/null
 	[ -v RESTART_DELAY ] && declare -p RESTART_DELAY 2>/dev/null
+	[ -v RESTART_ONFAILURE_ONLY ] && declare -p RESTART_ONFAILURE_ONLY 2>/dev/null
 	[ -v NOT_RECOMMEND_FORCE_RUN ] && declare -p NOT_RECOMMEND_FORCE_RUN 2>/dev/null
 	[ -v ENABLE_USERDEFINED_STOP ] && declare -p ENABLE_USERDEFINED_STOP 2>/dev/null
 	[ "$(type -t userdefined_stop)" == "function" ] && declare -f userdefined_stop 2>/dev/null`"
@@ -652,7 +672,7 @@ case "${1}" in
 		# Start the Screen
 		echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to start the ${APPLICATION_NAME}" # ${COLOR_RESET}"
 		
-		screen_start "${SCREEN_NAME}" "${EXECUTION_FILE}"
+		screen_start "${SCREEN_NAME}" sh -c "${EXECUTION_FILE}; echo \${?}>~/.screen-exit.${SCREEN_NAME}"
 		
 		counter=1
 		while [ "$counter" -le 10 ]; do
@@ -980,6 +1000,20 @@ case "${1}" in
 
 		script_end $(screen_status "${SCREEN_NAME}"; echo ${?})
 	;;
+	last-exit-code)
+		LAST_EXIT_CODE="$(screen_last_exitcode ${SCREEN_NAME}; echo ${?})"
+
+		if [ "${LAST_EXIT_CODE}" -eq 0 ]; then
+			COLOR_EXIT_CODE="${COLOR_WHITE}"
+		else
+			COLOR_EXIT_CODE="${COLOR_RED}"
+		fi
+
+		echo "${COLOR_YELLOW}${COLOR_BOLD}Last exit code was ${COLOR_EXIT_CODE}${LAST_EXIT_CODE}${COLOR_RESET}"
+		unset -v COLOR_EXIT_CODE
+
+		script_end "${LAST_EXIT_CODE}"
+	;;
 	join)
 		if ! screen_status "${SCREEN_NAME}"; then
 			echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} isn't running!${COLOR_RESET}"
@@ -1047,6 +1081,9 @@ case "${1}" in
 			status)
 				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to show ${APPLICATION_NAME} is online or offline.${COLOR_RESET}"
 			;;
+			last-exit-code)
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to return and display the last exit code of ${APPLICATION_NAME}.${COLOR_RESET}"
+			;;
 			join)
 				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to join ${APPLICATION_NAME} and exit when waittime was reached or application stops.${COLOR_RESET}"
 			;;
@@ -1054,7 +1091,7 @@ case "${1}" in
 				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to go into ${APPLICATION_NAME}-Console.${COLOR_RESET}"
 			;;
 			*)
-				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} help {start|stop|status|console}\" for details${COLOR_RESET}"
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} help {start|stop|run|restart|status|last-exit-code|join|console}\" for details${COLOR_RESET}"
 		esac
 		
 		EXIT_CODE=1
@@ -1093,14 +1130,19 @@ case "${1}" in
 						else
 							COUNT_TIME_EXCEEDED=$((${COUNT_TIME_EXCEEDED}+1))
 						fi;
+
+						LAST_EXIT_CODE="$(screen_last_exitcode ${SCREEN_NAME}; echo ${?})"
 						
-						if [ "${COUNT_TIME_EXCEEDED}" -le "${MAXCOUNT_TIME_EXCEEDED}" ]; then
+						if ([ "${LAST_EXIT_CODE}" -ne 0 ] || [ "${RESTART_ONFAILURE_ONLY}" == false ]) && [ "${COUNT_TIME_EXCEEDED}" -le "${MAXCOUNT_TIME_EXCEEDED}" ]; then
 							TRYING_START_SINCE="$(date +%s)"
 							
 							if [ "${RESTART_DELAY}" -gt 0 ] && [ "${LAST_START_TIME}" -gt 0 ]; then
 								echo -e "${COLOR_WHITE}${COLOR_BOLD}Trying to re-/start the ${APPLICATION_NAME} in ${RESTART_DELAY} seconds!${COLOR_RESET}"
 							fi;
 						else
+							if [ "${LAST_EXIT_CODE}" -ne 0 ]; then
+								echo -e "${COLOR_RED}${COLOR_BOLD}Warning${COLOR_YELLOW}: Determined a non-zero exit code!${COLOR_RESET}"
+							fi
 							echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} will not re-/start!${COLOR_RESET}"
 							WHILE_ENABLED=false
 						fi;
@@ -1108,7 +1150,7 @@ case "${1}" in
 						if ( [ "$(($(date +%s) - (${TRYING_START_SINCE} + ${RESTART_DELAY})))" -ge 0 ] || [ "${RESTART_DELAY}" -eq 0 ] || [ "${LAST_START_TIME}" -eq 0 ] ) && [ "${TRIED_START_SCREEN}" == false ]; then
 							echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to re-/start the ${APPLICATION_NAME}"
 							TRIED_START_SCREEN=true
-							screen_start "${SCREEN_NAME}" "${EXECUTION_FILE}"
+							screen_start "${SCREEN_NAME}" sh -c "${EXECUTION_FILE}; echo \${?}>~/.screen-exit.${SCREEN_NAME}"
 						elif [ "${TRIED_START_SCREEN}" == true ]; then
 							if [ "$(($(date +%s) - ${TRYING_START_SINCE}))" -gt 10 ]; then
 								echo -e "${COLOR_RESET}"
@@ -1138,7 +1180,7 @@ case "${1}" in
 			
 			unset -v COUNT_TIME_EXCEEDED LAST_START_TIME TRYING_START_SINCE TRIED_START_SCREEN
 		else
-			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Usage: ${0} {start|stop|run|restart|status|join|console|help}${COLOR_RESET}"
+			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Usage: ${0} {start|stop|run|restart|status|last-exit-code|join|console|help}${COLOR_RESET}"
 		fi;
 		
 		unset -v CMDLINE
@@ -1176,6 +1218,7 @@ script_end
                 ./control.sh    run                             Run the server in foreground.
 		./control.sh	restart				Restarts the server.
 		./control.sh	status				Shows: Is the server running?
+		./control.sh	last-exit-code			Returns and displays the last exit code
 		./control.sh	join				Joins the application and exits, when waittime was reached or application stops.
 		./control.sh	console				Opens the servers console.
 		./control.sh	help				Shows the help-page.
