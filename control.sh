@@ -63,6 +63,15 @@ function userdefined_stop() { # Params: SCREEN_NAME/SCREEN_NAME_FULL
 
 	return 0
 }
+function custom_printlog() { # Params: LEVEL ID MESSAGE
+	return 0
+}
+
+: '>>> IMPORTANT-NOTE <<<'
+: '  PRINTLOG LEVELS:'
+: '    - INFO'
+: '    - WARN'
+: '  MSGID RANGE: 1 - 42'
 
 : ' >>> SCRIPT-SETUP <<< ' # // DONT CHANGE THIS IF YOU DONT KNOW ABOUT THIS SETTINGS
 
@@ -573,6 +582,14 @@ function script_end() { # Params: Optional:EXIT_CODE
 	exit ${EXIT_CODE}
 }
 
+function printlog() { # Params: LEVEL MSGID MESSAGE
+	if [ "${#}" -eq 3 ] && declare -F custom_printlog &>/dev/null; then
+		custom_printlog "${1}" "${2}" "${3}" &>/dev/null
+		return ${?}
+	fi
+	return 255
+}
+
 : ' >>> SCRIPT <<< '
 
 EXIT_CODE=0 # DO NOT CHANGE THIS
@@ -598,6 +615,9 @@ if [ "${distrib_name_lowercase}" != "ubuntu" ] && [ "${distrib_name_lowercase}" 
 		echo -e "${COLOR_WHITE}${COLOR_BOLD}----------------------------------------------------------------"
 		echo -e "${COLOR_RED}${COLOR_BOLD}  Setting 'NOT_RECOMMEND_FORCE_RUN' to 'true' forces the Script running!${COLOR_RESET}"
 		echo -e ""
+
+		printlog "WARN" 1 "${APPLICATION_NAME}: Failed: System Unsupported" &>/dev/null
+
 		script_end 1
 	fi;
 fi;
@@ -616,7 +636,8 @@ if [ -f "${CONFIG_FILE}" ]; then
 	[ -v RESTART_ONFAILURE_ONLY ] && declare -p RESTART_ONFAILURE_ONLY 2>/dev/null
 	[ -v NOT_RECOMMEND_FORCE_RUN ] && declare -p NOT_RECOMMEND_FORCE_RUN 2>/dev/null
 	[ -v ENABLE_USERDEFINED_STOP ] && declare -p ENABLE_USERDEFINED_STOP 2>/dev/null
-	[ "$(type -t userdefined_stop)" == "function" ] && declare -f userdefined_stop 2>/dev/null`"
+	[ "$(type -t userdefined_stop)" == "function" ] && declare -f userdefined_stop 2>/dev/null
+	[ "$(type -t custom_printlog)" == "function" ] && declare -f custom_printlog 2>/dev/null`"
 fi
 
 # Check for Dependencies
@@ -626,12 +647,14 @@ require_package "sudo"
 # Check for Permissions
 if ! user_permitted "${EXECUTING_USER}"; then
 	echo -e "${COLOR_RED}${COLOR_BOLD}You are not permitted to run this Script!${COLOR_RESET}"
+	printlog "WARN" 2 "${APPLICATION_NAME}: Failed: Insufficient Permission" &>/dev/null
 	script_end 1
 fi;
 
 # Check for valid SCREEN_NAME
 if ! [[ ${SCREEN_NAME} =~ ${REGEX_SCREEN_NAME} ]] || [[ ${SCREEN_NAME} =~ ${REGEX_SCREEN_NAME_KEEPER} ]]; then
 	echo -e "${COLOR_RED}${COLOR_BOLD}Invalid Name for Screen, given in Variable 'SCREEN_NAME'!${COLOR_RESET}\n"
+	printlog "WARN" 3 "${APPLICATION_NAME}: Failed: Invalid SCREEN_NAME" &>/dev/null
 	script_end 1
 fi;
 
@@ -649,12 +672,14 @@ if ! redirect_processed; then
 			script_end ${?}
 		else
 			echo -e "${COLOR_RED}${COLOR_BOLD}User doesn't exists, given in Variable 'EXECUTING_USER'!${COLOR_RESET}"
+			printlog "WARN" 4 "${APPLICATION_NAME}: Failed: User does not exist" &>/dev/null
 			script_end 1
 		fi;
 	fi;
 else
 	if ! correct_user_running; then
 		echo -e "${COLOR_RED}${COLOR_BOLD}Failed to change the user authority!${COLOR_RESET}"
+		printlog "WARN" 5 "${APPLICATION_NAME}: Failed: " &>/dev/null
 		script_end 1
 	else
 		echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully changed the user authority!${COLOR_RESET}\n"
@@ -666,6 +691,7 @@ case "${1}" in
 	start)
 		if screen_status "${SCREEN_NAME}"; then # IF [ SCREEN is running ]  OR  [ K_SCREEN is running ]
 			echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} is already running!${COLOR_RESET}"
+			printlog "INFO" 6 "${APPLICATION_NAME}: Already running" &>/dev/null
 			script_end 0
 		fi;
 		
@@ -689,9 +715,11 @@ case "${1}" in
 		
 		if ! screen_status "${SCREEN_NAME}"; then
 			echo -e "${COLOR_RED}${COLOR_BOLD}Failed to start the ${APPLICATION_NAME}!${COLOR_RESET}"
+			printlog "WARN" 7 "${APPLICATION_NAME}: Failed to start" &>/dev/null
 			script_end 1
 		else
 			echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully started the ${APPLICATION_NAME}!${COLOR_RESET}"
+			printlog "INFO" 8 "${APPLICATION_NAME}: Successfully started" &>/dev/null
 			EXIT_CODE=0
 		fi;
 		
@@ -700,6 +728,7 @@ case "${1}" in
 		if [ "${SCREEN_KEEPER}" == true ]; then
 			if screen_status "K_${SCREEN_NAME}"; then
 				echo -e "${COLOR_RED}${COLOR_BOLD}The Keeper for the ${APPLICATION_NAME} is already running!${COLOR_RESET}"
+				printlog "INFO" 9 "${APPLICATION_NAME}: Keeper already running" &>/dev/null
 				script_end 0
 			fi;
 			
@@ -722,9 +751,11 @@ case "${1}" in
 			
 			if ! screen_status "K_${SCREEN_NAME}"; then
 				echo -e "${COLOR_RED}${COLOR_BOLD}Failed to start the Keeper for the ${APPLICATION_NAME}!${COLOR_RESET}"
+				printlog "WARN" 10 "${APPLICATION_NAME}: Failed to start Keeper" &>/dev/null
 				script_end 1
 			else
 				echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully started the Keeper for the ${APPLICATION_NAME}!${COLOR_RESET}"
+				printlog "INFO" 11 "${APPLICATION_NAME}: Successfully started Keeper" &>/dev/null
 				script_end 0
 			fi;
 		fi;
@@ -732,6 +763,7 @@ case "${1}" in
 	stop)
 		if ! screen_status "${SCREEN_NAME}" && ! screen_status "K_${SCREEN_NAME}"; then
 			echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} and the Keeper isn't running!${COLOR_RESET}"
+			printlog "INFO" 12 "${APPLICATION_NAME}: Unable to stop: Not running" &>/dev/null
 			script_end 0
 		fi;
 		
@@ -740,6 +772,7 @@ case "${1}" in
 		if ! screen_status "K_${SCREEN_NAME}"; then # IF [ SCREEN isn't running ]
 			if [ "${SCREEN_KEEPER}" == true ]; then
 				echo -e "${COLOR_RED}${COLOR_BOLD}The Keeper of the ${APPLICATION_NAME} isn't running!${COLOR_RESET}"
+				printlog "INFO" 13 "${APPLICATION_NAME}: Unable to stop Keeper: Not running" &>/dev/null
 			fi;
 		else
 			echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to stop the Keeper of the ${APPLICATION_NAME} by sending a Term-Signal"
@@ -748,6 +781,7 @@ case "${1}" in
 			
 			if ! screen_pid SCREEN_PID "K_${SCREEN_NAME}"; then
 				echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the Keeper of the ${APPLICATION_NAME} while getting the PID of the screen!${COLOR_RESET}"
+				printlog "WARN" 14 "${APPLICATION_NAME}: Failed to stop Keeper" &>/dev/null
 			else
 				kill -SIGTERM "${SCREEN_PID}" 2> /dev/null
 				
@@ -766,8 +800,10 @@ case "${1}" in
 				
 				if ! screen_status "K_${SCREEN_NAME}"; then
 					echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully stopped the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+					printlog "INFO" 15 "${APPLICATION_NAME}: Successfully stopped Keeper: via Term-Signal" &>/dev/null
 				else
 					echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+					printlog "WARN" 16 "${APPLICATION_NAME}: Failed to stop Keeper: via Term-Signal" &>/dev/null
 					
 					if [ "${2}" == "force" ] || [ "${2}" == "brute-force" ]; then
 						echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to stop the Keeper of the ${APPLICATION_NAME} by sending a Quit-Signal"
@@ -790,8 +826,10 @@ case "${1}" in
 						
 						if ! screen_status "K_${SCREEN_NAME}"; then
 							echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully stopped the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+							printlog "INFO" 17 "${APPLICATION_NAME}: Successfully stopped Keeper: via Quit-Signal" &>/dev/null
 						else
 							echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+							printlog "WARN" 18 "${APPLICATION_NAME}: Failed to stop Keeper: via Quit-Signal" &>/dev/null
 							
 							if [ "${2}" == "brute-force" ]; then
 								echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to stop the Keeper of the ${APPLICATION_NAME} by sending a Kill-Signal"
@@ -814,6 +852,10 @@ case "${1}" in
 								if screen_status "K_${SCREEN_NAME}"; then
 									echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
 									echo -e "${COLOR_RED}${COLOR_BOLD}Finally the Keeper of the ${APPLICATION_NAME} is still running!${COLOR_RESET}"
+									printlog "WARN" 19 "${APPLICATION_NAME}: Failed to stop Keeper: via Kill-Signal" &>/dev/null
+								else
+									echo -e "${COLOR_GREEN}${COLOR_BOLD}Finally stopped the Keeper of the ${APPLICATION_NAME}!${COLOR_RESET}"
+									printlog "INFO" 20 "${APPLICATION_NAME}: Finally stopped Keeper: via Kill-Signal" &>/dev/null
 								fi;
 							fi;
 						fi;
@@ -828,6 +870,7 @@ case "${1}" in
 		
 		if ! screen_status "${SCREEN_NAME}"; then # IF [ SCREEN isn't running ]
 			echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} isn't running!${COLOR_RESET}"
+			printlog "INFO" 21 "${APPLICATION_NAME}: Unable to stop: Not running" &>/dev/null
 		else
 			if [ "${ENABLE_USERDEFINED_STOP}" == true ]; then
 				echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to stop the ${APPLICATION_NAME}"
@@ -850,10 +893,12 @@ case "${1}" in
 			
 			if ! screen_status "${SCREEN_NAME}" && [ "${ENABLE_USERDEFINED_STOP}" == true ]; then
 				echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully stopped the ${APPLICATION_NAME}!${COLOR_RESET}"
+				printlog "INFO" 22 "${APPLICATION_NAME}: Successfully stopped: via userdefined stop" &>/dev/null
 				script_end 0
 			else
 				if [ "${ENABLE_USERDEFINED_STOP}" == true ]; then
 					echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the ${APPLICATION_NAME}!${COLOR_RESET}"
+					printlog "WARN" 23 "${APPLICATION_NAME}: Failed to stop: via userdefined stop" &>/dev/null
 					EXIT_CODE=1
 				else
 					echo -e "${COLOR_RED}${COLOR_BOLD}No userdefined stop was set!${COLOR_RESET}"
@@ -866,6 +911,7 @@ case "${1}" in
 					
 					if ! screen_pid SCREEN_PID "${SCREEN_NAME}"; then
 						echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the ${APPLICATION_NAME} while getting the PID of the screen!${COLOR_RESET}"
+						printlog "WARN" 24 "${APPLICATION_NAME}: Failed to stop: Couldn't retrieve the screen PID" &>/dev/null
 						script_end 1
 					else
 						kill -SIGTERM "${SCREEN_PID}" 2> /dev/null
@@ -885,9 +931,11 @@ case "${1}" in
 						
 						if ! screen_status "${SCREEN_NAME}"; then
 							echo -e "${COLOR_GREEN}${COLOR_BOLD}Successfully stopped the ${APPLICATION_NAME}!${COLOR_RESET}"
+							printlog "INFO" 25 "${APPLICATION_NAME}: Successfully stopped: via Term-Signal" &>/dev/null
 							script_end 0
 						else
 							echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the ${APPLICATION_NAME}!${COLOR_RESET}"
+							printlog "WARN" 26 "${APPLICATION_NAME}: Failed to stop: via Term-Signal" &>/dev/null
 							EXIT_CODE=1
 							
 							if [ "${2}" == "brute-force" ]; then
@@ -911,8 +959,12 @@ case "${1}" in
 								if screen_status "${SCREEN_NAME}"; then
 									echo -e "${COLOR_RED}${COLOR_BOLD}Failed to stop the ${APPLICATION_NAME}!${COLOR_RESET}"
 									echo -e "${COLOR_RED}${COLOR_BOLD}Finally the ${APPLICATION_NAME} is still running!${COLOR_RESET}"
+									printlog "WARN" 27 "${APPLICATION_NAME}: Failed to stop: via Kill-Signal" &>/dev/null
 									
 									script_end 1
+								else
+									echo -e "${COLOR_GREEN}${COLOR_BOLD}Finally stopped the ${APPLICATION_NAME}!${COLOR_RESET}"
+									printlog "INFO" 28 "${APPLICATION_NAME}: Finally stopped: via Kill-Signal" &>/dev/null
 								fi;
 							fi;
 						fi;
@@ -926,6 +978,7 @@ case "${1}" in
 	run)
 		if screen_status "${SCREEN_NAME}" || screen_status "K_${SCREEN_NAME}"; then
 			echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} or the Keeper is running!${COLOR_RESET}"
+			printlog "WARN" 29 "${APPLICATION_NAME}: Unable to run: ${APPLICATION_NAME} or Keeper is already running" &>/dev/null
 			script_end 0
 		fi;
 		
@@ -953,18 +1006,29 @@ case "${1}" in
 				else
 					echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to re-/start the ${APPLICATION_NAME}"
 				fi;
+
+				printlog "INFO" 30 "${APPLICATION_NAME}: R: Starting/Restarting" &>/dev/null
 				
 				LAST_START_TIME=$(($(date +%s) - ${MIN_ELAPSED_TIME}))
 				${EXECUTION_FILE}
+				EXECUTION_EXIT_CODE="${?}"
+
+				printlog "INFO" 31 "${APPLICATION_NAME}: R: Exited/Stopped" &>/dev/null
 				
 				if [ "$(($(date +%s) - ${LAST_START_TIME}))" -ge "${MIN_ELAPSED_TIME}" ] || [ "${MIN_ELAPSED_TIME}" -eq 0 ]; then
 					COUNT_TIME_EXCEEDED=0
 				else
 					COUNT_TIME_EXCEEDED=$((${COUNT_TIME_EXCEEDED}+1))
 				fi;
+
+				if [ "${EXECUTION_EXIT_CODE}" -ne 0 ]; then
+					echo -e "${COLOR_RED}${COLOR_BOLD}Exited with non-zero exit code ${EXECUTION_EXIT_CODE}.${COLOR_RESET}"
+					printlog "WARN" 32 "${APPLICATION_NAME}: Exited with non-zero exit code ${EXECUTION_EXIT_CODE}" &>/dev/null
+				fi
 				
-				if [ "$?" -ne 0 ] || [ "${COUNT_TIME_EXCEEDED}" -gt "${MAXCOUNT_TIME_EXCEEDED}" ]; then
+				if [ "${EXECUTION_EXIT_CODE}" -ne 0 ] || [ "${COUNT_TIME_EXCEEDED}" -gt "${MAXCOUNT_TIME_EXCEEDED}" ]; then
 					echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} will not re-/start!${COLOR_RESET}"
+					printlog "WARN" 33 "${APPLICATION_NAME}: Stopping: No restart" &>/dev/null
 					WHILE_ENABLED=false
 				fi;
 			
@@ -976,6 +1040,7 @@ case "${1}" in
 	;;
 	restart)
 		echo -e "${COLOR_YELLOW}${COLOR_BOLD}Restart in progress...${COLOR_RESET}"
+		printlog "INFO" 34 "${APPLICATION_NAME}: Restarting" &>/dev/null
 		
 		${0} stop \
 			&& ${0} start \
@@ -1100,6 +1165,7 @@ case "${1}" in
 		if executed_byKeeperScreen $@; then
 			if [ "${SCREEN_KEEPER}" != true ]; then
 				echo -e "${COLOR_WHITE}${COLOR_BOLD}The Keeper for the ${APPLICATION_NAME} isn't enabled!${COLOR_RESET}"
+				printlog "WARN" 35 "${APPLICATION_NAME}: Unable to run Keeper: Keeper is not enabled" &>/dev/null
 				script_end 1
 			fi;
 			
@@ -1131,24 +1197,34 @@ case "${1}" in
 							COUNT_TIME_EXCEEDED=$((${COUNT_TIME_EXCEEDED}+1))
 						fi;
 
+						if [ "${LAST_START_TIME}" -ne 0 ]; then
+							RUNNING_TIME="$(($(date +%s) - ${LAST_START_TIME}))"
+							echo -e "${COLOR_WHITE}${COLOR_BOLD} exited; ran for ${RUNNING_TIME} seconds.${COLOR_RESET}"
+							printlog "WARN" 36 "${APPLICATION_NAME}: Exited: ${APPLICATION_NAME} ran for ${RUNNING_TIME} seconds" &>/dev/null
+						fi
+
 						LAST_EXIT_CODE="$(screen_last_exitcode ${SCREEN_NAME}; echo ${?})"
+						if [ "${LAST_EXIT_CODE}" -ne 0 ]; then
+							echo -e "${COLOR_RED}${COLOR_BOLD}Warning${COLOR_YELLOW}: Exited with non-zero exit code ${LAST_EXIT_CODE}!${COLOR_RESET}"
+							printlog "WARN" 37 "${APPLICATION_NAME}: Exited with non-zero exit code ${LAST_EXIT_CODE}" &>/dev/null
+						fi
 						
 						if ([ "${LAST_EXIT_CODE}" -ne 0 ] || [ "${RESTART_ONFAILURE_ONLY}" == false ]) && [ "${COUNT_TIME_EXCEEDED}" -le "${MAXCOUNT_TIME_EXCEEDED}" ]; then
 							TRYING_START_SINCE="$(date +%s)"
 							
 							if [ "${RESTART_DELAY}" -gt 0 ] && [ "${LAST_START_TIME}" -gt 0 ]; then
 								echo -e "${COLOR_WHITE}${COLOR_BOLD}Trying to re-/start the ${APPLICATION_NAME} in ${RESTART_DELAY} seconds!${COLOR_RESET}"
+								printlog "INFO" 38 "${APPLICATION_NAME}: Restart in ${RESTART_DELAY} seconds" &>/dev/null
 							fi;
 						else
-							if [ "${LAST_EXIT_CODE}" -ne 0 ]; then
-								echo -e "${COLOR_RED}${COLOR_BOLD}Warning${COLOR_YELLOW}: Determined a non-zero exit code!${COLOR_RESET}"
-							fi
 							echo -e "${COLOR_RED}${COLOR_BOLD}The ${APPLICATION_NAME} will not re-/start!${COLOR_RESET}"
+							printlog "INFO" 39 "${APPLICATION_NAME}: Stopping: No restart" &>/dev/null
 							WHILE_ENABLED=false
 						fi;
 					else
 						if ( [ "$(($(date +%s) - (${TRYING_START_SINCE} + ${RESTART_DELAY})))" -ge 0 ] || [ "${RESTART_DELAY}" -eq 0 ] || [ "${LAST_START_TIME}" -eq 0 ] ) && [ "${TRIED_START_SCREEN}" == false ]; then
 							echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to re-/start the ${APPLICATION_NAME}"
+							printlog "INFO" 40 "${APPLICATION_NAME}: Starting/Restarting" &>/dev/null
 							TRIED_START_SCREEN=true
 							screen_start "${SCREEN_NAME}" sh -c "${EXECUTION_FILE}; echo \${?}>~/.screen-exit.${SCREEN_NAME}"
 						elif [ "${TRIED_START_SCREEN}" == true ]; then
@@ -1156,6 +1232,7 @@ case "${1}" in
 								echo -e "${COLOR_RESET}"
 								echo -e "${COLOR_RED}${COLOR_BOLD}Couldn't re-/start the ${APPLICATION_NAME}!${COLOR_RESET}"
 								echo -e "${COLOR_RED}${COLOR_BOLD}Stopping the Keeper!${COLOR_RESET}"
+								printlog "WARN" 41 "${APPLICATION_NAME}: Failed to start/restart" &>/dev/null
 								TRYING_START_SINCE=0
 								WHILE_ENABLED=false
 							else
@@ -1167,6 +1244,7 @@ case "${1}" in
 					if [ "${TRYING_START_SINCE}" -gt 0 ]; then
 						echo -e "${COLOR_RESET}"
 						echo -e "${COLOR_GREEN}${COLOR_BOLD}The ${APPLICATION_NAME} re-/started successfully!${COLOR_RESET}"
+						printlog "INFO" 42 "${APPLICATION_NAME}: Successfully started" &>/dev/null
 						LAST_START_TIME="$(date +%s)"
 						TRYING_START_SINCE=0
 						TRIED_START_SCREEN=false
