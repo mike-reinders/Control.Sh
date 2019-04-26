@@ -109,5 +109,10 @@ There are two types of configuration sections:
  &nbsp; **Note:** After execution the managed application has got 10 seconds to terminate  
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; until the normal shutdown routine is beeing executed.  
  &nbsp; **default:** (empty)
+ 
+ **function custom_printlog()** (Line 59)  
+ &nbsp; Contains the routine which is executed when logging a message.  
+ &nbsp; **Parameter:** <Level> <MsgID> <Message>
+ &nbsp; **default:** (empty)
 
 
