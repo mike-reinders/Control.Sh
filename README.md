@@ -1,115 +1,111 @@
 # Control.Sh
-Application-Holding &amp; -Management Shell-File
+A shell script for running applications in foreground or background
 
 # Description
 
-Control.sh provides to start, stop and restart your application whith only one simple command line for Linux Systems.
+Control.sh is used for running applications in foreground or background.  
+Simply configure it within the Control.sh-file or within a control.cfg-file
 
 # Installation & Usage
 
 ## Installation
 
-Download: [control.sh](control.sh)
+Download or Clone: [control.sh](control.sh)
 
-1. Copy control.sh into your folder, where your managed application executable is stored in.  
-2. Execute `apt-get update; apt-get install screen` in your putty/console.  
-3. Configure your control.sh
+1. Download or Clone the Control.sh-file into your folder  
+2. Execute `apt-get update; apt-get install screen sudo` in your putty/console/terminal.  
+3. Configure your control.sh or create a control.cfg within the folder where your control.sh is located in
 
-## Usage
-
-1. First go into your folder with `cd /my/folder/`  
-2. Execute `./control.sh help` to get all available commands.
-
-Commands:  
+## Commands
 `./control.sh start` *Starts the managed application*  
 `./control.sh stop` *Stops the managed application*  
 `./control.sh run` *Runs the managed application in foreground*  
 `./control.sh restart` *Restarts the managed application*  
 `./control.sh status` *Shows running status of the managed application*  
-`./control.sh console` *Gets you into the console of the managed application*
+`./control.sh	last-exit-code`		*Returns and displays the last exit code*  
+`./control.sh join`  *Joins the application and exits when waittime was reached or application stops*  
+`./control.sh console` *Gets you into the console of the managed application*  
+`./control.sh help`  *Displays help/all commands*
 
 **Note:**  
 When you use `./control.sh console` and you want to get out, you only can leave the screen by using **CTRL + A + D**.
 Use it multiple times if it doesnt work!
-if you use **CTRL + C** it **KILLS** the managed application and **ALL data is lost**
+if you use **CTRL + C** it **KILLS** the managed application **which might leads to data loss**
 
 ## Quick Configuration-Steps
 
 Change following lines/variables:
 ```
-39: SCREEN_NAME="ApplicationScreenName" # the screen name; only change it if you use multiple applications using `screen`
-40: EXECUTION_FILE="startfile -parameter1 -parameter2" # your filename and parameters
-41: EXECUTING_USER="root" # which user do you want to run the application
+42: SCREEN_NAME="ApplicationScreenName" # change it when using multiple applications under the same user
+43: EXECUTION_FILE="startfile -parameter1 -parameter2" # your commandline
+44: EXECUTING_USER="root" # under which user the commandline is executed
 ```
 
 # Configuration
 
-There are two types of configuration:  
-- `>>> NOVICE-SETUP <<<` &nbsp; &nbsp; *for simple configurations (contains 8 variables)*  
+There are two types of configuration sections:  
+- `>>> NOVICE-SETUP <<<` &nbsp; &nbsp; *for simple configurations (contains 10 variables)*  
 - `>>> ADVANCED-SETUP <<<` &nbsp; &nbsp; *for advanced configurations (contains 2 variables, 1 function)*
 
 ## Simple Configuration
 
-**Variable:** `APPLICATION_NAME="Application-Server"` (line 38)  
- &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Specifies the name of the managed application.
+**APPLICATION_NAME** (Line 41)  
+ &nbsp; Specifies the name of the managed application.
+ &nbsp; **default:** "Application-Server"
 
-**Variable:** `SCREEN_NAME="ApplicationScreenName"` (line 39)  
- &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Specifies the Screen-Name which is used to identify the managed application.  
- &nbsp; &nbsp; **Variable Restrictions:**  
- &nbsp; &nbsp; &nbsp; Regular Expression: Every Character except Whitespaces, Dots and no lead with `K_`
+**SCREEN_NAME** (Line 42)  
+ &nbsp; Specifies the Screen-Name which is used to identify the managed application.  
+ &nbsp; **Note:** Every Character except Whitespaces, Dots and no lead with `K_` are allowed.
 
-**Variable:** `EXECUTION_FILE="startfile -parameter1 -parameter2"` (line 40)  
- &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Declares the start file and its needed parameters.
+**EXECUTION_FILE** (Line 43)  
+ &nbsp; Specifies the command line your managed application shall run.  
+ &nbsp; **default:** "startfile -parameter1 -parameter2"
 
-**Variable:** `EXECUTING_USER="root"` (line 41)  
- &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Declares the user which is used to run the managed application/(keeper)script  
- &nbsp; &nbsp; **Note:**  
- &nbsp; &nbsp; &nbsp; if the user to be executed is not root and not the given user in this variable,  
- &nbsp; &nbsp; &nbsp; you will get an error on execution.
+**EXECUTING_USER** (Line 44)  
+ &nbsp; Specifies the user under which the managed application and its' keeper is executed.  
+ &nbsp; **Note:** The specified user must be root or the user you'r going to run control.sh with.
 
-**Variable:** `SCREEN_KEEPER=false` (line 43)  
- &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Indicates whether the screen-keeper will be started on `./control.sh start`  
- &nbsp; &nbsp; **Note:**  
- &nbsp; &nbsp; &nbsp; The keeper restarts your application when it closed.
+**SCREEN_KEEPER** (Line 46)  
+ &nbsp; Specifies whether the screen-keeper will be started on `./control.sh start`  
+ &nbsp; The keeper restarts your application on exit.  
+ &nbsp; **default:** false
 
-**Variable:** `MIN_ELAPSED_TIME=30` (line 44)  
- &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Specifies how much seconds has to be elapsed between start (incl. restart) and close,  
- &nbsp; &nbsp; &nbsp; before the start-event of the application is considered as failed.
+**MIN_ELAPSED_TIME** (Line 47)  
+ &nbsp; Specifies the time in seconds which has to be elapsed between start and exit  
+ &nbsp; of the managed application to consider the start as success.  
+ &nbsp; **default:** 30
 
-**Variable:** `MAXCOUNT_TIME_EXCEEDED=3` (line 45)  
- &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Specifies how much times the keeper will restart your managed application after failed start-events.
+**MAXCOUNT_TIME_EXCEEDED** (Line 48)  
+ &nbsp; Specifies how much times the keeper will restart your managed application after a failed start.  
+ &nbsp; **default:** 3
 
-**Variable:** `RESTART_DELAY=0` (line 46)  
- &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Specifies the restart-delay  
- &nbsp; &nbsp; &nbsp; (how much seconds the keeper waits until it restarts your managed application)
+**RESTART_DELAY** (Line 49)  
+ &nbsp; Specifies the restart-delay the keeper waits until the managed application is restarted.  
+ &nbsp; **default:** 0
+ 
+ **RESTART_ONFAILURE_ONLY** (Line 50)  
+ &nbsp; Specifies whether the screen keeper only restarts the managed application on non-zero exit code.  
+ &nbsp; **default:** true
+
+**CONFIG_FILE** (Line 52)  
+ &nbsp; Specifies the Configuration-File  
+ &nbsp; **default:** control.cfg
 
 ## Advanced Configuration
 
-**Variable:** `NOT_RECOMMEND_FORCE_RUN=false` (line 50)  
- &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Indicates whether the script deactivates the distribution-check.
+**NOT_RECOMMEND_FORCE_RUN** (Line 56)  
+ &nbsp; Specifies whether the script does not run a distribution-check.  
+ &nbsp; **defaukt:** false
 
-**Variable:** `ENABLE_USERDEFINED_STOP=false` (line 52)  
- &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Indicates whether the script executes the function userdefined_stop() when `./control.sh stop` is beeing executed.
+**ENABLE_USERDEFINED_STOP** (Line 58)  
+ &nbsp; Specifies whether the script executes the function userdefined_stop() instead of sending a unix SIGTERM signal  
+ &nbsp; when stopping the managed application.  
+ &nbsp; **default:** false
 
-**Function:** `function userdefined_stop() {` (line 53)  
- &nbsp; &nbsp; **Function:**  
- &nbsp; &nbsp; &nbsp; Contains the code, that gets executed when `./control.sh stop` is beeing executed.    &nbsp; &nbsp;  
- &nbsp; &nbsp; **Default Function:**  
- &nbsp; &nbsp; &nbsp; Command `save-all` and `stop` will be sent via STD:IN-Pipe with 1 seconds delay after each command.  
- &nbsp; &nbsp; **Note:**  
- &nbsp; &nbsp; &nbsp; This method will be executed before the script tries to terminate the process or tries to killing it.  
- &nbsp; &nbsp; &nbsp; The managed application got 10 seconds before step 2 (termination) and additional 10 seconds before step 3 (killing)  
- &nbsp; &nbsp; &nbsp; gets executed.
+**function userdefined_stop()** (Line 59)  
+ &nbsp; Contains the routine which is executed when stopping the managed application.  
+ &nbsp; **Note:** After execution the managed application has got 10 seconds to terminate  
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; until the normal shutdown routine is beeing executed.
 
 
 
