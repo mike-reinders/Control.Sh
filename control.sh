@@ -364,7 +364,7 @@ function screen_status() { # Params: SCREEN_NAME/SCREEN_NAME_FULL
 
 function screen_last_exitcode() { # Params:
 	if [ -n "${1}" ]; then
-		local SCREEN_EXIT_FILE="$(echo ~)/.screen-exit.${SCREEN_NAME}"
+		local SCREEN_EXIT_FILE="/run/screen/S-${EXECUTING_USER}.screen-exit.${SCREEN_NAME}"
 		if [ -f "${SCREEN_EXIT_FILE}" ]; then
 			read -r SCREEN_EXIT_CODE_TMP<"${SCREEN_EXIT_FILE}"
 			local SCREEN_EXIT_CODE=${SCREEN_EXIT_CODE_TMP}
