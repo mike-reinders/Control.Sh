@@ -583,7 +583,7 @@ function script_end() { # Params: Optional:EXIT_CODE
 }
 
 function printlog() { # Params: LEVEL MSGID MESSAGE
-	if [ "${#}" -eq 3 ] && declare -F custom_printlog &>/dev/null; then
+	if [ "${#}" -eq 3 ] && [ "${2}" -eq "${2}" ] &>/dev/null && declare -F custom_printlog &>/dev/null; then
 		custom_printlog "${1}" "${2}" "${3}" &>/dev/null
 		return ${?}
 	fi
