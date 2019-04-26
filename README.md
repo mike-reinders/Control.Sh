@@ -50,12 +50,13 @@ There are two types of configuration sections:
 ## Simple Configuration
 
 **APPLICATION_NAME** (Line 41)  
- &nbsp; Specifies the name of the managed application.
+ &nbsp; Specifies the name of the managed application.  
  &nbsp; **default:** "Application-Server"
 
 **SCREEN_NAME** (Line 42)  
  &nbsp; Specifies the Screen-Name which is used to identify the managed application.  
- &nbsp; **Note:** Every Character except Whitespaces, Dots and no lead with `K_` are allowed.
+ &nbsp; **Note:** Every Character except Whitespaces, Dots and no lead with `K_` are allowed.  
+ &nbsp; **default:** "ApplicationScreenName"
 
 **EXECUTION_FILE** (Line 43)  
  &nbsp; Specifies the command line your managed application shall run.  
@@ -63,7 +64,8 @@ There are two types of configuration sections:
 
 **EXECUTING_USER** (Line 44)  
  &nbsp; Specifies the user under which the managed application and its' keeper is executed.  
- &nbsp; **Note:** The specified user must be root or the user you'r going to run control.sh with.
+ &nbsp; **Note:** The specified user must be root or the user you'r going to run control.sh with.  
+ &nbsp; **default:** "root"
 
 **SCREEN_KEEPER** (Line 46)  
  &nbsp; Specifies whether the screen-keeper will be started on `./control.sh start`  
@@ -105,7 +107,7 @@ There are two types of configuration sections:
 **function userdefined_stop()** (Line 59)  
  &nbsp; Contains the routine which is executed when stopping the managed application.  
  &nbsp; **Note:** After execution the managed application has got 10 seconds to terminate  
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; until the normal shutdown routine is beeing executed.
-
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; until the normal shutdown routine is beeing executed.  
+ &nbsp; **default:** (empty)
 
 
