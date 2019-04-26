@@ -5,8 +5,9 @@
 	***  Copyright (C) © 2016 Mike R.  ***
 	***                & 2017          ***
 	***                & 2018          ***
+	***                & 2019          ***
 	***      All rights reserved.      ***
-	***      GitHub.com/MikesR-GH      ***
+	***      GitHub.com/MikeR-GH       ***
 	**************************************
 	***      !! Usage allowed !!       ***
 	***   ~ private && commercial ~    ***
@@ -1151,8 +1152,9 @@ script_end
 	***  Copyright (C) © 2016 Mike R.  ***
 	***                & 2017          ***
 	***                & 2018          ***
+	***                & 2019          ***
 	***      All rights reserved.      ***
-	***      GitHub.com/MikesR-GH      ***
+	***      GitHub.com/MikeR-GH       ***
 	**************************************
 	***      !! Usage allowed !!       ***
 	***   ~ private && commercial ~    ***
