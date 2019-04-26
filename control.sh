@@ -698,7 +698,7 @@ case "${1}" in
 		# Start the Screen
 		echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to start the ${APPLICATION_NAME}" # ${COLOR_RESET}"
 		
-		screen_start "${SCREEN_NAME}" sh -c "${EXECUTION_FILE}; echo \${?}>~/.screen-exit.${SCREEN_NAME}"
+		screen_start "${SCREEN_NAME}" sh -c "${EXECUTION_FILE}; echo \${?}>/run/screen/S-${EXECUTING_USER}.screen-exit.${SCREEN_NAME}"
 		
 		counter=1
 		while [ "$counter" -le 10 ]; do
@@ -1226,7 +1226,7 @@ case "${1}" in
 							echo -en "${COLOR_WHITE}${COLOR_BOLD}Trying to re-/start the ${APPLICATION_NAME}"
 							printlog "INFO" 40 "${APPLICATION_NAME}: Starting/Restarting" &>/dev/null
 							TRIED_START_SCREEN=true
-							screen_start "${SCREEN_NAME}" sh -c "${EXECUTION_FILE}; echo \${?}>~/.screen-exit.${SCREEN_NAME}"
+							screen_start "${SCREEN_NAME}" sh -c "${EXECUTION_FILE}; echo \${?}>/run/screen/S-${EXECUTING_USER}.screen-exit.${SCREEN_NAME}"
 						elif [ "${TRIED_START_SCREEN}" == true ]; then
 							if [ "$(($(date +%s) - ${TRYING_START_SINCE}))" -gt 10 ]; then
 								echo -e "${COLOR_RESET}"
