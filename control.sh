@@ -1063,7 +1063,7 @@ case "${1}" in
 			fi;
 		fi;
 
-		script_end $(screen_status "${SCREEN_NAME}"; echo ${?})
+		script_end $(screen_status "${SCREEN_NAME}" || screen_status "K_${SCREEN_NAME}"; echo "${?}")
 	;;
 	last-exit-code)
 		LAST_EXIT_CODE="$(screen_last_exitcode ${SCREEN_NAME}; echo ${?})"
