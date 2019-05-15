@@ -877,18 +877,20 @@ case "${1}" in
 				
 				userdefined_stop "${SCREEN_NAME}"
 				
-				counter=1
-				while [ "$counter" -le 10 ]; do
-					if screen_status "${SCREEN_NAME}"; then
-						echo -en "."
-						sleep 1
-					else
-						break
-					fi;
-					counter=$(($counter+1))
-				done;
-				unset -v counter
-				echo -e "${COLOR_RESET}"
+				if [ "${?}" -eq 0 ]; then
+					counter=1
+					while [ "$counter" -le 10 ]; do
+						if screen_status "${SCREEN_NAME}"; then
+							echo -en "."
+							sleep 1
+						else
+							break
+						fi;
+						counter=$(($counter+1))
+					done;
+					unset -v counter
+					echo -e "${COLOR_RESET}"
+				fi
 			fi;
 			
 			if ! screen_status "${SCREEN_NAME}" && [ "${ENABLE_USERDEFINED_STOP}" == true ]; then
