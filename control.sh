@@ -636,8 +636,8 @@ if [ -f "${CONFIG_FILE}" ]; then
 	[ -v RESTART_ONFAILURE_ONLY ] && declare -p RESTART_ONFAILURE_ONLY 2>/dev/null
 	[ -v NOT_RECOMMEND_FORCE_RUN ] && declare -p NOT_RECOMMEND_FORCE_RUN 2>/dev/null
 	[ -v ENABLE_USERDEFINED_STOP ] && declare -p ENABLE_USERDEFINED_STOP 2>/dev/null
-	[ "$(type -t userdefined_stop)" == "function" ] && declare -f userdefined_stop 2>/dev/null
-	[ "$(type -t custom_printlog)" == "function" ] && declare -f custom_printlog 2>/dev/null`"
+	[ "$(type -t custom_printlog)" == "function" ] && declare -f custom_printlog 2>/dev/null
+	[ "$(type -t userdefined_stop)" == "function" ] && declare -f userdefined_stop 2>/dev/null`"
 fi
 
 # Check for Dependencies
