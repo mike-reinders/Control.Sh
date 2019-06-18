@@ -29,6 +29,7 @@
 		./control.sh	run				Run the server in foreground.
 		./control.sh	restart				Restarts the server.
 		./control.sh	status				Shows: Is the server running?
+		./control.sh	dump-config			Dumps the current configuration
 		./control.sh	last-exit-code			Returns and displays the last exit code
 		./control.sh	join				Joins the application and exits, when waittime was reached or application stops.
 		./control.sh	console				Opens the servers console.
@@ -1067,6 +1068,23 @@ case "${1}" in
 
 		script_end $(screen_status "${SCREEN_NAME}" || screen_status "K_${SCREEN_NAME}"; echo "${?}")
 	;;
+	dump-config)
+		[ -v APPLICATION_NAME ] && declare -p APPLICATION_NAME 2>/dev/null || echo "APPLICATION_NAME undefined"
+		[ -v SCREEN_NAME ] && declare -p SCREEN_NAME 2>/dev/null || echo "SCREEN_NAME undefined"
+		[ -v EXECUTION_FILE ] && declare -p EXECUTION_FILE 2>/dev/null || echo "EXECUTION_FILE undefined"
+		[ -v EXECUTING_USER ] && declare -p EXECUTING_USER 2>/dev/null || echo "EXECUTING_USER undefined"
+		[ -v SCREEN_KEEPER ] && declare -p SCREEN_KEEPER 2>/dev/null || echo "SCREEN_KEEPER undefined"
+		[ -v MIN_ELAPSED_TIME ] && declare -p MIN_ELAPSED_TIME 2>/dev/null || echo "MIN_ELAPSED_TIME undefined"
+		[ -v MAXCOUNT_TIME_EXCEEDED ] && declare -p MAXCOUNT_TIME_EXCEEDED 2>/dev/null || echo "MAXCOUNT_TIME_EXCEEDED undefined"
+		[ -v RESTART_DELAY ] && declare -p RESTART_DELAY 2>/dev/null || echo "RESTART_DELAY undefined"
+		[ -v RESTART_ONFAILURE_ONLY ] && declare -p RESTART_ONFAILURE_ONLY 2>/dev/null || echo "RESTART_ONFAILURE_ONLY undefined"
+		[ -v NOT_RECOMMEND_FORCE_RUN ] && declare -p NOT_RECOMMEND_FORCE_RUN 2>/dev/null || echo "NOT_RECOMMENDED_FORCE_RUN undefined"
+		[ -v ENABLE_USERDEFINED_STOP ] && declare -p ENABLE_USERDEFINED_STOP 2>/dev/null || echo "ENABLE_USERDEFINED_STOP undefined"
+		[ "$(type -t custom_printlog)" == "function" ] && declare -f custom_printlog 2>/dev/null || echo "custom_printlog undefined"
+		[ "$(type -t userdefined_stop)" == "function" ] && declare -f userdefined_stop 2>/dev/null || echo "userdefined_stop undefined"
+
+		script_end 0
+	;;
 	last-exit-code)
 		LAST_EXIT_CODE="$(screen_last_exitcode ${SCREEN_NAME}; echo ${?})"
 
@@ -1147,6 +1165,9 @@ case "${1}" in
 			;;
 			status)
 				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to show ${APPLICATION_NAME} is online or offline.${COLOR_RESET}"
+			;;
+			dump-config)
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to dump the current Control.Sh configuration${COLOR_RESET}
 			;;
 			last-exit-code)
 				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to return and display the last exit code of ${APPLICATION_NAME}.${COLOR_RESET}"
@@ -1260,7 +1281,7 @@ case "${1}" in
 			
 			unset -v COUNT_TIME_EXCEEDED LAST_START_TIME TRYING_START_SINCE TRIED_START_SCREEN
 		else
-			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Usage: ${0} {start|stop|run|restart|status|last-exit-code|join|console|help}${COLOR_RESET}"
+			echo -e "${COLOR_YELLOW}${COLOR_BOLD}Usage: ${0} {start|stop|run|restart|status|dump-config|last-exit-code|join|console|help}${COLOR_RESET}"
 		fi;
 		
 		unset -v CMDLINE
@@ -1298,6 +1319,7 @@ script_end
                 ./control.sh    run                             Run the server in foreground.
 		./control.sh	restart				Restarts the server.
 		./control.sh	status				Shows: Is the server running?
+		./control.sh	dump-config			Dumps the current configuration
 		./control.sh	last-exit-code			Returns and displays the last exit code
 		./control.sh	join				Joins the application and exits, when waittime was reached or application stops.
 		./control.sh	console				Opens the servers console.
