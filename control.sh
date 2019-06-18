@@ -1167,7 +1167,7 @@ case "${1}" in
 				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to show ${APPLICATION_NAME} is online or offline.${COLOR_RESET}"
 			;;
 			dump-config)
-				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to dump the current Control.Sh configuration${COLOR_RESET}
+				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to dump the current Control.Sh configuration${COLOR_RESET}"
 			;;
 			last-exit-code)
 				echo -e "${COLOR_YELLOW}${COLOR_BOLD}Use: \"${0} ${2}\" to return and display the last exit code of ${APPLICATION_NAME}.${COLOR_RESET}"
