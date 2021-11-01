@@ -285,7 +285,7 @@ function screen_list() { # Params: RETURN Optional:SCREEN_NAME
 	local screen_list_return="";
 	
 	#FLIST=$( screen -ls | grep -P "^\t([0-9]{1,5})\.([^\t\s\.]+)\t\(([0-9]{2}\/[0-9]{2}\/[0-9]{4})\s([0-9]{2}\:[0-9]{2}\:[0-9]{2})\s(PM)\)\t\(([^\(\)]*)\)$" | sed -e 's/^[ \t]*//' )  # @Deprecated
-	screen_list_return=$( screen -ls | grep -P "^(\t|\s)([0-9]{1,5})\.([^\t\s\.]+)(\t|\s)\(([0-9]{2}[\/\.][0-9]{2}[\/\.]([0-9]{2}|[0-9]{4}))\s([0-9]{2}\:[0-9]{2}\:[0-9]{2})(\s(PM|AM))?\)(\t|\s)\(([^\(\)]*)\)$" | sed -e 's/^[ \t]*//' )
+	screen_list_return=$( screen -ls | grep -P "^(\t|\s)+([0-9]{1,})\.([^\t\s\.]+)(\t|\s)+\(([0-9]{2}[\/\.][0-9]{2}[\/\.]([0-9]{2}|[0-9]{4}))\s([0-9]{2}\:[0-9]{2}\:[0-9]{2})(\s(PM|AM))?\)(\t|\s)+\(([^\(\)]*)\)$" | sed -e 's/^[ \t]*//' )
 	
 	if [[ "${2}" =~ ${REGEX_SCREEN_NAME_FULL} ]]; then
 		screen_list_return=$( echo "${screen_list_return}" | grep -P "{2}(\t|\s)" )
