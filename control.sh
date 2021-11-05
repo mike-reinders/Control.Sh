@@ -290,7 +290,7 @@ function screen_list() { # Params: RETURN Optional:SCREEN_NAME
 	if [[ "${2}" =~ ${REGEX_SCREEN_NAME_FULL} ]]; then
 		screen_list_return=$( echo "${screen_list_return}" | grep -P "{2}(\t|\s)" )
 	elif [[ "${2}" =~ ${REGEX_SCREEN_NAME} ]]; then
-		screen_list_return=$( echo "${screen_list_return}" | grep -P "^([0-9]{1,5})\.${2}(\t|\s)" )
+		screen_list_return=$( echo "${screen_list_return}" | grep -P "^([0-9]{1,})\.${2}(\t|\s)" )
 	fi;
 	
 	eval "${1}=\"${screen_list_return}\""
